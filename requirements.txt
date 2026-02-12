@@ -1,0 +1,36 @@
+# AWS and Bedrock
+boto3>=1.34.0
+botocore>=1.34.0
+bedrock-agentcore-starter-toolkit>=0.1.0
+
+# Strands Agent Framework
+strands-agents>=0.1.0
+strands-agents-tools>=0.1.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+hypothesis>=6.82.0  # Property-based testing
+moto>=4.2.0  # AWS service mocking
+
+# Infrastructure
+python-terraform>=0.10.1
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+requests>=2.31.0
+
+# Logging and Monitoring
+structlog>=23.1.0
+
+# Development
+black>=23.7.0
+flake8>=6.1.0
+mypy>=1.5.0
+isort>=5.12.0

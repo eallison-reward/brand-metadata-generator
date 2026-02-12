@@ -1,0 +1,107 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# AWS Credentials
+.aws/
+*.pem
+*.key
+credentials
+config
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate.d/
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Secrets and Sensitive Data
+secrets/
+*.secret
+.env
+.env.local
+*.credentials
+
+# Logs
+*.log
+logs/
+*.out
+
+# Test Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Data Files (exclude large datasets)
+data/raw/
+data/processed/
+*.csv
+*.parquet
+*.json.gz
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# OS Files
+Thumbs.db
+.DS_Store
+
+# AgentCore
+.agentcore/
+
+# Quick_Suite
+quicksuite_config/
+
+# S3 Local Cache
+.s3_cache/
