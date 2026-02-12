@@ -2,7 +2,7 @@
 
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -61,7 +61,7 @@ module "dynamodb" {
   project_name                  = var.project_name
   environment                   = var.environment
   agent_names                   = var.agent_names
-  enable_point_in_time_recovery = false  # Disabled for dev
+  enable_point_in_time_recovery = false # Disabled for dev
   common_tags                   = local.common_tags
 }
 
@@ -96,6 +96,6 @@ module "monitoring" {
   aws_region        = var.aws_region
   agent_names       = var.agent_names
   state_machine_arn = module.step_functions.state_machine_arn
-  create_sns_topic  = false  # Disabled for dev
+  create_sns_topic  = false # Disabled for dev
   common_tags       = local.common_tags
 }

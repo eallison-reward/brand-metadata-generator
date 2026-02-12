@@ -64,11 +64,11 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Create apply_metadata_to_combos tool for matching
     - _Requirements: 2.3, 2.4_
   
-  - [ ]* 3.5 Write property test for data transformation agent
+  - [ ] 3.5 Write property test for data transformation agent
     - **Property 1: Foreign Key Referential Integrity**
     - **Validates: Requirements 1.6**
   
-  - [ ]* 3.6 Write unit tests for data transformation agent
+  - [ ] 3.6 Write unit tests for data transformation agent
     - Test Athena query execution
     - Test validation functions
     - Test S3 read/write operations
@@ -104,13 +104,13 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Provide guidance on wallet handling
     - _Requirements: 4.5, 3.5_
   
-  - [ ]* 4.6 Write property tests for evaluator agent
+  - [ ] 4.6 Write property tests for evaluator agent
     - **Property 4: Wallet Detection and Flagging**
     - **Property 7: Consistency Assessment**
     - **Property 10: Confidence Score Calculation**
     - **Validates: Requirements 3.1, 3.2, 4.1, 4.2, 4.6**
   
-  - [ ]* 4.7 Write unit tests for evaluator agent
+  - [ ] 4.7 Write unit tests for evaluator agent
     - Test narrative variance calculation
     - Test wallet detection with various indicators
     - Test confidence score edge cases
@@ -129,7 +129,7 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Implement handler function for AgentCore
     - _Requirements: 5.5_
   
-  - [ ]* 5.3 Write unit tests for commercial assessment agent
+  - [ ] 5.3 Write unit tests for commercial assessment agent
     - Test brand existence validation
     - Test sector validation logic
     - Test alternative sector suggestions
@@ -161,12 +161,12 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Track iteration count
     - _Requirements: 10.4_
   
-  - [ ]* 6.5 Write property tests for metadata production agent
+  - [ ] 6.5 Write property tests for metadata production agent
     - **Property 2: Metadata Completeness**
     - **Property 5: Wallet Text Exclusion**
     - **Validates: Requirements 2.1, 2.2, 3.3**
   
-  - [ ]* 6.6 Write unit tests for metadata production agent
+  - [ ] 6.6 Write unit tests for metadata production agent
     - Test regex generation with various narrative patterns
     - Test wallet text filtering
     - Test MCCID list generation
@@ -185,11 +185,11 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Create flag_for_human_review tool
     - _Requirements: 6.5_
   
-  - [ ]* 7.3 Write property test for confirmation agent
+  - [ ] 7.3 Write property test for confirmation agent
     - **Property 12: Confirmation Decision Completeness**
     - **Validates: Requirements 6.5**
   
-  - [ ]* 7.4 Write unit tests for confirmation agent
+  - [ ] 7.4 Write unit tests for confirmation agent
     - Test combo review logic
     - Test exclusion reasoning
     - Test human review flagging
@@ -209,12 +209,12 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Flag low-confidence ties for human review
     - _Requirements: 7.4_
   
-  - [ ]* 8.3 Write property tests for tiebreaker agent
+  - [ ] 8.3 Write property tests for tiebreaker agent
     - **Property 13: Tie Detection and Resolution Workflow**
     - **Property 14: Low Confidence Tie Handling**
     - **Validates: Requirements 7.1, 7.2, 7.4, 7.5**
   
-  - [ ]* 8.4 Write unit tests for tiebreaker agent
+  - [ ] 8.4 Write unit tests for tiebreaker agent
     - Test narrative similarity analysis
     - Test MCCID alignment comparison
     - Test confidence calculation
@@ -253,13 +253,13 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Route tie resolutions
     - _Requirements: 10.1, 10.2, 10.3_
   
-  - [ ]* 9.6 Write property tests for orchestrator agent
+  - [ ] 9.6 Write property tests for orchestrator agent
     - **Property 18: Conditional Routing**
     - **Property 19: Agent Failure Retry**
     - **Property 22: Iteration Limit**
     - **Validates: Requirements 9.5, 9.6, 9.9, 10.5**
   
-  - [ ]* 9.7 Write unit tests for orchestrator agent
+  - [ ] 9.7 Write unit tests for orchestrator agent
     - Test workflow initialization
     - Test agent invocation
     - Test retry logic with simulated failures
@@ -308,7 +308,7 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - _Requirements: 11.1_
 
 - [ ] 13. Integration and End-to-End Testing
-  - [ ]* 13.1 Write integration test for complete workflow
+  - [ ] 13.1 Write integration test for complete workflow
     - Set up test data in Athena
     - Invoke Step Functions workflow
     - Verify metadata generation
@@ -316,13 +316,13 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Verify S3 storage of results
     - _Requirements: All_
   
-  - [ ]* 13.2 Write integration test for tie resolution
+  - [ ] 13.2 Write integration test for tie resolution
     - Create tie scenario in test data
     - Verify Tiebreaker Agent invocation
     - Verify tie resolution and combo assignment
     - _Requirements: 7.1, 7.2, 7.3, 7.5_
   
-  - [ ]* 13.3 Write integration test for confirmation workflow
+  - [ ] 13.3 Write integration test for confirmation workflow
     - Create ambiguous brand scenario
     - Verify Confirmation Agent invocation
     - Verify combo exclusion
@@ -369,11 +369,12 @@ This implementation plan breaks down the brand-metadata-generator system into di
 
 ## Notes
 
-- Tasks marked with `*` are optional and can be skipped for faster MVP
 - Each task references specific requirements for traceability
 - Checkpoints ensure incremental validation
 - Property tests validate universal correctness properties (minimum 100 iterations each)
 - Unit tests validate specific examples and edge cases
-- All agents use Python and Strands API
+- Integration tests validate end-to-end workflows
+- All tests are REQUIRED to ensure system correctness and reliability
+- All agents use Python 3.12+ and Strands API
 - All infrastructure uses Terraform for portability
 - AWS region is eu-west-1 for all services

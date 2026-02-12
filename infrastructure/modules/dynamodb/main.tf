@@ -14,10 +14,10 @@ terraform {
 resource "aws_dynamodb_table" "agent_memory" {
   for_each = toset(var.agent_names)
 
-  name           = "${var.project_name}-agent-memory-${each.value}-${var.environment}"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "session_id"
-  range_key      = "timestamp"
+  name         = "${var.project_name}-agent-memory-${each.value}-${var.environment}"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "session_id"
+  range_key    = "timestamp"
 
   attribute {
     name = "session_id"

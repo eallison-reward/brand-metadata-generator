@@ -49,9 +49,9 @@ resource "aws_cloudwatch_dashboard" "main" {
       {
         type = "log"
         properties = {
-          query   = "SOURCE '/aws/bedrock/agentcore/orchestrator-${var.environment}' | fields @timestamp, @message | sort @timestamp desc | limit 20"
-          region  = var.aws_region
-          title   = "Recent Orchestrator Logs"
+          query  = "SOURCE '/aws/bedrock/agentcore/orchestrator-${var.environment}' | fields @timestamp, @message | sort @timestamp desc | limit 20"
+          region = var.aws_region
+          title  = "Recent Orchestrator Logs"
         }
       }
     ]
