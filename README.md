@@ -70,7 +70,7 @@ brand-metadata-generator/
 
 ## Prerequisites
 
-- Python 3.9+
+- Python 3.12+
 - AWS CLI configured with appropriate credentials
 - Terraform 1.0+
 - AWS account with Bedrock access in eu-west-1

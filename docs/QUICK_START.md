@@ -4,8 +4,8 @@ Get the Brand Metadata Generator up and running in 30 minutes.
 
 ## Prerequisites
 
-- AWS account with Bedrock access in eu-west-1
-- Python 3.9+
+- Python 3.12+
+- AWS CLI configured with appropriate credentials
 - Terraform 1.0+
 - Git
 
@@ -17,7 +17,7 @@ git clone <your-repo-url>
 cd brand-metadata-generator
 
 # Create virtual environment
-python -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies

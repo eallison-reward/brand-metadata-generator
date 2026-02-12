@@ -1,0 +1,24 @@
+# Variables for step_functions module
+
+variable "project_name" {
+  description = "Project name used for resource naming"
+  type        = string
+  default     = "brand-metadata-generator"
+}
+
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "eu-west-1"
+}
+
+variable "common_tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

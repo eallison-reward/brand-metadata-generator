@@ -1,0 +1,55 @@
+# Variables for monitoring module
+
+variable "project_name" {
+  description = "Project name used for resource naming"
+  type        = string
+  default     = "brand-metadata-generator"
+}
+
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "eu-west-1"
+}
+
+variable "agent_names" {
+  description = "List of agent names for log groups"
+  type        = list(string)
+  default = [
+    "orchestrator-agent",
+    "data-transformation-agent",
+    "evaluator-agent",
+    "metadata-production-agent",
+    "commercial-assessment-agent",
+    "confirmation-agent",
+    "tiebreaker-agent"
+  ]
+}
+
+variable "log_retention_days" {
+  description = "Number of days to retain logs"
+  type        = number
+  default     = 30
+}
+
+variable "state_machine_arn" {
+  description = "ARN of the Step Functions state machine"
+  type        = string
+}
+
+variable "create_sns_topic" {
+  description = "Whether to create SNS topic for alarms"
+  type        = bool
+  default     = false
+}
+
+variable "common_tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

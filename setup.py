@@ -9,7 +9,7 @@ setup(
     author="Your Team",
     author_email="your-email@example.com",
     packages=find_packages(exclude=["tests*", "docs*"]),
-    python_requires=">=3.9",
+    python_requires=">=3.12",
     install_requires=[
         "boto3>=1.34.0",
         "strands-agents>=0.1.0",
@@ -28,8 +28,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
 )

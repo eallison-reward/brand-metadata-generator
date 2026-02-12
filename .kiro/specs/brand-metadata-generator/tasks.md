@@ -13,21 +13,21 @@ This implementation plan breaks down the brand-metadata-generator system into di
   - Initialize project documentation
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
-- [ ] 2. Terraform Infrastructure as Code
-  - [ ] 2.1 Create Terraform module structure
+- [x] 2. Terraform Infrastructure as Code
+  - [x] 2.1 Create Terraform module structure
     - Create modules for agents, step_functions, storage, and monitoring
     - Set up environment-specific configurations (dev, staging, prod)
     - Define shared IAM roles and policies
     - _Requirements: 11.11, 11.12_
   
-  - [ ] 2.2 Implement S3 and Athena infrastructure
+  - [x] 2.2 Implement S3 and Athena infrastructure
     - Create S3 bucket resource (brand-generator-rwrd-023-eu-west-1)
     - Configure Glue catalog database (brand_metadata_generator_db)
     - Define Glue tables for brand, brand_to_check, combo, and mcc
     - Set up Athena workgroup and query result location
     - _Requirements: 11.5, 11.6_
   
-  - [ ] 2.3 Implement IAM roles and policies
+  - [x] 2.3 Implement IAM roles and policies
     - Create agent execution role with Bedrock permissions
     - Add Athena query permissions
     - Add S3 read/write permissions
@@ -35,7 +35,7 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Add CloudWatch Logs permissions
     - _Requirements: 11.10_
   
-  - [ ] 2.4 Create DynamoDB tables for agent memory
+  - [x] 2.4 Create DynamoDB tables for agent memory
     - Define memory tables with TTL configuration
     - Set up appropriate indexes
     - _Requirements: 11.1_
