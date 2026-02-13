@@ -98,10 +98,10 @@ resource "aws_lambda_function" "workflow_init" {
 
   environment {
     variables = {
-      AWS_REGION       = var.aws_region
-      S3_BUCKET        = var.s3_bucket_name
-      ATHENA_DATABASE  = var.athena_database
-      ENVIRONMENT      = var.environment
+      AWS_REGION      = var.aws_region
+      S3_BUCKET       = var.s3_bucket_name
+      ATHENA_DATABASE = var.athena_database
+      ENVIRONMENT     = var.environment
     }
   }
 
@@ -127,10 +127,10 @@ resource "aws_lambda_function" "orchestrator_invoke" {
 
   environment {
     variables = {
-      AWS_REGION                 = var.aws_region
-      ORCHESTRATOR_AGENT_ID      = var.orchestrator_agent_id
+      AWS_REGION                  = var.aws_region
+      ORCHESTRATOR_AGENT_ID       = var.orchestrator_agent_id
       ORCHESTRATOR_AGENT_ALIAS_ID = var.orchestrator_agent_alias_id
-      ENVIRONMENT                = var.environment
+      ENVIRONMENT                 = var.environment
     }
   }
 
