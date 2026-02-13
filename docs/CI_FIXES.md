@@ -9,9 +9,10 @@ GitHub CI was failing on two jobs:
 ## Root Causes
 
 ### 1. Test Failure
-- **Root Cause**: CI workflow wasn't installing the project package, so Python couldn't find the `agents` and `shared` modules
+- **Root Cause**: Missing `__init__.py` files in `agents/` and `shared/` directories, preventing Python from recognizing them as packages
+- **Secondary Issue**: CI workflow wasn't installing the project package, so Python couldn't find the modules even if they were packages
 - **Impact**: Tests couldn't import required modules (ModuleNotFoundError: No module named 'agents')
-- **Secondary Issue**: CI was using `-m unit` marker but tests weren't marked
+- **Additional Issue**: CI was using `-m unit` marker but tests weren't marked
 
 ### 2. Terraform Validation Failure
 - **Cause 1**: Lambda module Terraform files weren't formatted
@@ -19,7 +20,14 @@ GitHub CI was failing on two jobs:
 
 ## Fixes Applied
 
-### Fix 1: Install Project as Package
+### Fix 1: Add Missing __init__.py Files
+**Files**: `agents/__init__.py`, `shared/__init__.py`
+
+Created missing `__init__.py` files in the top-level `agents/` and `shared/` directories. Without these files, Python doesn't recognize these directories as packages, even when the project is installed with `pip install -e .`.
+
+**Reason**: Python requires `__init__.py` files (even if empty) to treat directories as packages that can be imported. The subdirectories (like `agents/evaluator/`) had `__init__.py` files, but the parent directories didn't.
+
+### Fix 2: Install Project as Package
 **File**: `.github/workflows/ci.yml`
 
 Changed:
@@ -39,9 +47,9 @@ To:
     pip install pytest pytest-cov hypothesis black flake8 mypy
 ```
 
-**Reason**: Installing the project with `pip install -e .` makes the `agents` and `shared` modules available to Python by adding the project to the Python path. This is the standard way to make a project's modules importable during development and testing.
+**Reason**: Installing the project with `pip install -e .` makes the `agents` and `shared` modules available to Python by adding the project to the Python path. This is the standard way to make a project's modules importable during development and testing. However, this only works if the directories have `__init__.py` files.
 
-### Fix 2: Remove Unit Test Marker
+### Fix 3: Remove Unit Test Marker
 **File**: `.github/workflows/ci.yml`
 
 Changed:
@@ -58,12 +66,12 @@ To:
     pytest tests/unit -v
 ```
 
-### Fix 3: Format Terraform Files
+### Fix 4: Format Terraform Files
 **Command**: `terraform fmt infrastructure/modules/lambda/main.tf`
 
 Formatted the Lambda module Terraform file to pass format checks.
 
-### Fix 4: Create Placeholder Lambda ZIP Files
+### Fix 5: Create Placeholder Lambda ZIP Files
 **Command**: Created ZIP files for Lambda functions
 
 Created:
@@ -73,27 +81,7 @@ Created:
 
 These are placeholder files containing the handler.py files. Proper packaging will be done during deployment using the packaging scripts.
 
-## Verification
-
-### Local Test Results
-```bash
-python -m pytest tests/unit -v
-# Result: 177 passed, 1 warning
-```
-
-### Terraform Format Check
-```bash
-terraform fmt -check -recursive infrastructure
-# Result: No formatting issues
-```
-
-### All Tests (Including Property Tests)
-```bash
-python -m pytest tests/ --tb=short
-# Result: 211 passed, 1 warning
-```
-
-### Fix 5: Update strands-agents Dependency
+### Fix 6: Update strands-agents Dependency
 **Files**: `requirements.txt`, `setup.py`
 
 Changed in both files:
@@ -108,7 +96,7 @@ strands-agents
 
 **Reason**: The version constraint `>=0.1.0` may have been too restrictive or incompatible with the package's actual versioning scheme. Removing the version constraint allows pip to install the latest compatible version.
 
-## CI Status
+## Verification
 
 After these fixes:
 - ✅ **CI/test(3.12)** - Should pass (dependencies installed, tests run correctly)
