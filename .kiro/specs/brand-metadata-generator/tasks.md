@@ -307,8 +307,8 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Test agent invocation
     - _Requirements: 11.1_
 
-- [ ] 13. Integration and End-to-End Testing
-  - [ ] 13.1 Write integration test for complete workflow
+- [-] 13. Integration and End-to-End Testing
+  - [x] 13.1 Write integration test for complete workflow
     - Set up test data in Athena
     - Invoke Step Functions workflow
     - Verify metadata generation
@@ -316,7 +316,7 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Verify S3 storage of results
     - _Requirements: All_
   
-  - [ ] 13.2 Write integration test for tie resolution
+  - [x] 13.2 Write integration test for tie resolution
     - Create tie scenario in test data
     - Verify Tiebreaker Agent invocation
     - Verify tie resolution and combo assignment
