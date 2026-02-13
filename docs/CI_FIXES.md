@@ -91,6 +91,21 @@ python -m pytest tests/ --tb=short
 # Result: 211 passed, 1 warning
 ```
 
+### Fix 5: Update strands-agents Dependency
+**File**: `requirements.txt`
+
+Changed:
+```
+strands-agents>=0.1.0
+```
+
+To:
+```
+strands-agents
+```
+
+**Reason**: The version constraint `>=0.1.0` may have been too restrictive or incompatible with the package's actual versioning scheme. Removing the version constraint allows pip to install the latest compatible version.
+
 ## CI Status
 
 After these fixes:
