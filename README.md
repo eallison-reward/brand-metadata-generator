@@ -76,12 +76,19 @@ brand-metadata-generator/
 - AWS CLI configured with appropriate credentials
 - Terraform 1.0+
 - AWS account with Bedrock access in eu-west-1
+- AgentCore CLI installed
+
+### Install Dependencies
 
 ```bash
 # Install Python dependencies
+pip install -e .
+
+# Install development dependencies
+pip install pytest pytest-cov hypothesis black flake8 mypy
+
+# Install AgentCore CLI (for agent deployment)
 pip install bedrock-agentcore-starter-toolkit
-pip install strands-agents strands-agents-tools
-pip install boto3 pytest
 
 # Configure AWS
 aws configure
@@ -124,15 +131,33 @@ python infrastructure/deploy_agents.py --env dev
 ### 5. Run Tests
 
 ```bash
-# Unit tests
-pytest tests/unit/
+# Run all tests
+pytest
 
-# Integration tests
-pytest tests/integration/
+# Unit tests only
+pytest tests/unit/ -v
 
-# Property-based tests
-pytest tests/property/
+# Integration tests only
+pytest tests/integration/ -v
+
+# Property-based tests only
+pytest tests/property/ -v
+
+# Run with coverage
+pytest --cov=agents --cov=shared --cov-report=html
+
+# Run specific test file
+pytest tests/unit/test_orchestrator.py -v
 ```
+
+### Test Coverage
+
+The project includes comprehensive test coverage:
+- **177 unit tests**: Test individual functions and components
+- **34 property-based tests**: Validate universal correctness properties
+- **26 integration tests**: Test end-to-end workflows
+
+All tests must pass before deployment to production.
 
 ## Deployment
 
@@ -154,21 +179,64 @@ python ../../deploy_agents.py --env prod
 
 ## Usage
 
-### Invoke Workflow via Step Functions
+### Starting the Workflow
+
+The workflow can be triggered via AWS Step Functions:
 
 ```bash
 aws stepfunctions start-execution \
-  --state-machine-arn arn:aws:states:eu-west-1:ACCOUNT_ID:stateMachine:brand_metagen_workflow_dev \
-  --input '{"action": "start_workflow", "config": {"max_iterations": 5}}'
+  --state-machine-arn arn:aws:states:eu-west-1:ACCOUNT_ID:stateMachine:brand-metagen-workflow-dev \
+  --input '{
+    "action": "start_workflow",
+    "config": {
+      "max_iterations": 5,
+      "confidence_threshold": 0.75,
+      "batch_size": 100
+    }
+  }'
 ```
 
-### Monitor Progress
+### Monitoring Progress
 
-Access the Quick_Suite dashboard or check CloudWatch Logs:
+#### CloudWatch Dashboard
+
+Access the CloudWatch dashboard for real-time metrics:
+- Navigate to CloudWatch → Dashboards → `brand-metagen-dev`
+- View workflow execution metrics, brand processing status, and agent invocations
+
+#### QuickSight Dashboard
+
+For business-level monitoring:
+1. Navigate to AWS QuickSight
+2. Open the "Brand Metadata Generator" dashboard
+3. View brand processing status, combo matching statistics, and human review queue
+
+See [QuickSight Dashboard Setup Guide](docs/QUICKSIGHT_DASHBOARD_SETUP.md) for detailed instructions.
+
+#### CloudWatch Logs
+
+Tail agent logs in real-time:
 
 ```bash
-aws logs tail /aws/bedrock/agentcore/orchestrator --follow
+# Orchestrator logs
+aws logs tail /aws/bedrock/agentcore/brand-metagen-orchestrator-dev --follow
+
+# All agent logs
+aws logs tail /aws/bedrock/agentcore/brand-metagen-* --follow
+
+# Filter for errors
+aws logs tail /aws/bedrock/agentcore/brand-metagen-* --follow --filter-pattern "ERROR"
 ```
+
+### Workflow Phases
+
+1. **Initialization**: Load configuration and prepare data
+2. **Data Transformation**: Ingest and validate brand data from Athena
+3. **Evaluation**: Assess data quality and detect payment wallets
+4. **Metadata Production**: Generate regex patterns and MCCID lists
+5. **Confirmation**: Review matched combos and exclude false positives
+6. **Tie Resolution**: Handle combos matching multiple brands
+7. **Result Aggregation**: Store final metadata in S3
 
 ## Configuration
 
@@ -213,10 +281,37 @@ aws athena start-query-execution \
 
 ## Documentation
 
-- [Requirements](.kiro/specs/brand-metadata-generator/requirements.md)
-- [Design](.kiro/specs/brand-metadata-generator/design.md)
-- [Implementation Plan](.kiro/specs/brand-metadata-generator/tasks.md)
-- [Deployment Best Practices](AGENTCORE_DEPLOYMENT_BEST_PRACTICES.md)
+- [Requirements](.kiro/specs/brand-metadata-generator/requirements.md) - Detailed system requirements and acceptance criteria
+- [Design](.kiro/specs/brand-metadata-generator/design.md) - System architecture and design decisions
+- [Implementation Plan](.kiro/specs/brand-metadata-generator/tasks.md) - Task breakdown and progress tracking
+- [Agent Deployment Guide](docs/AGENT_DEPLOYMENT_GUIDE.md) - Step-by-step agent deployment instructions
+- [Step Functions Workflow](docs/STEP_FUNCTIONS_WORKFLOW.md) - Workflow state machine documentation
+- [QuickSight Dashboard Setup](docs/QUICKSIGHT_DASHBOARD_SETUP.md) - Dashboard configuration guide
+- [Deployment Best Practices](AGENTCORE_DEPLOYMENT_BEST_PRACTICES.md) - AgentCore deployment guidelines
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
+
+## Key Features
+
+### Intelligent Metadata Generation
+
+- **Pattern Recognition**: Analyzes transaction narratives to generate precise regex patterns
+- **MCCID Filtering**: Identifies legitimate merchant category codes while excluding wallet-specific codes
+- **Wallet Detection**: Automatically detects and handles payment wallet transactions (PayPal, Square, etc.)
+- **Iterative Refinement**: Supports up to 5 iterations with feedback-driven improvements
+
+### Quality Assurance
+
+- **Confidence Scoring**: Calculates confidence scores (0.0-1.0) for all generated metadata
+- **False Positive Detection**: Identifies and excludes ambiguous matches (e.g., "Apple" fruit vs Apple Inc.)
+- **Tie Resolution**: Resolves combos matching multiple brands using narrative similarity and MCCID alignment
+- **Human Review Flagging**: Automatically flags low-confidence cases for human review
+
+### Monitoring and Observability
+
+- **CloudWatch Integration**: Real-time metrics for workflow execution, agent invocations, and errors
+- **QuickSight Dashboards**: Business-level monitoring of brand processing and combo matching
+- **Comprehensive Logging**: Detailed logs for all agent activities and decisions
+- **Automated Alarms**: Alerts for workflow failures, high error rates, and review queue buildup
 
 ## Contributing
 

@@ -22,11 +22,13 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual Environment
 venv/
 ENV/
 env/
+.venv/
 
 # IDE
 .vscode/
@@ -35,13 +37,21 @@ env/
 *.swo
 *~
 .DS_Store
+*.sublime-project
+*.sublime-workspace
 
-# AWS Credentials
+# AWS Credentials and Sensitive Data
 .aws/
 *.pem
 *.key
 credentials
 config
+.env
+.env.local
+.env.*.local
+*.credentials
+secrets/
+*.secret
 
 # Terraform
 *.tfstate
@@ -51,30 +61,31 @@ config
 .terraform.lock.hcl
 terraform.tfstate.d/
 crash.log
+crash.*.log
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
-
-# Secrets and Sensitive Data
-secrets/
-*.secret
-.env
-.env.local
-*.credentials
+.terraformrc
+terraform.rc
 
 # Logs
 *.log
 logs/
 *.out
+*.err
 
 # Test Coverage
 .coverage
+.coverage.*
 htmlcov/
 .pytest_cache/
 .tox/
 coverage.xml
 *.cover
+.hypothesis/
+.cache/
+nosetests.xml
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
@@ -86,22 +97,128 @@ data/processed/
 *.csv
 *.parquet
 *.json.gz
+*.xlsx
+*.xls
 
 # Temporary Files
 tmp/
 temp/
 *.tmp
 *.bak
+*.swp
+*.swo
 
 # OS Files
 Thumbs.db
 .DS_Store
+desktop.ini
 
 # AgentCore
 .agentcore/
+agentcore.log
 
-# Quick_Suite
+# Quick_Suite / QuickSight
 quicksuite_config/
+quicksight_config/
 
 # S3 Local Cache
 .s3_cache/
+s3_local/
+
+# Lambda Deployment Packages
+lambda_functions/**/*.zip
+!lambda_functions/workflow_init.zip
+!lambda_functions/orchestrator_invoke.zip
+!lambda_functions/result_aggregation.zip
+
+# CloudWatch Logs Local
+cloudwatch_logs/
+
+# Backup Files
+*.backup
+backup/
+backups/
+
+# Documentation Build
+docs/_build/
+docs/.doctrees/
+site/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Local configuration overrides
+local_config.py
+local_settings.py
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.nox/
+
+# Translations
+*.mo
+*.pot
+
+# Scrapy stuff
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
