@@ -577,6 +577,184 @@ graph LR
 
 
 
+### 8. Feedback Processing Agent
+
+**Purpose**: Parses and processes human feedback to generate actionable improvements for metadata refinement.
+
+**Responsibilities**:
+- Parse natural language feedback from humans
+- Extract specific combo IDs mentioned in feedback
+- Identify feedback categories (regex too broad, missing patterns, wrong MCCIDs, false positives)
+- Generate structured prompts for Metadata Production Agent based on feedback
+- Track feedback patterns across brands
+- Store feedback with full context and version history
+
+**Tools**:
+- `parse_feedback(feedback_text: str, brandid: int) -> dict`: Extract structured data from natural language
+- `identify_misclassified_combos(feedback: dict) -> list`: Find specific combo examples mentioned
+- `analyze_feedback_category(feedback: dict) -> str`: Categorize feedback type
+- `generate_refinement_prompt(feedback: dict, current_metadata: dict, brand_data: dict) -> str`: Create specific guidance
+- `store_feedback(brandid: int, feedback: dict, metadata_version: int) -> dict`: Persist to S3 and DynamoDB
+- `retrieve_feedback_history(brandid: int) -> list`: Get all previous feedback for a brand
+
+**Interface**:
+```python
+# Input: General Feedback
+{
+    "action": "process_feedback",
+    "brandid": 123,
+    "metadata_version": 2,
+    "feedback_type": "general",
+    "feedback_text": "Too many false positives for Starbucks. Regex is matching Starburst candy and Starbucks Hotel.",
+    "current_metadata": {
+        "regex": "^STARBUCKS.*",
+        "mccids": [5812, 5814]
+    }
+}
+
+# Input: Specific Examples
+{
+    "action": "process_feedback",
+    "brandid": 123,
+    "metadata_version": 2,
+    "feedback_type": "specific_examples",
+    "feedback_text": "Combo 12345 should not be Starbucks - it's Starburst candy. Combo 67890 is Starbucks Hotel, not the coffee chain.",
+    "misclassified_combos": [12345, 67890]
+}
+
+# Output
+{
+    "brandid": 123,
+    "feedback_processed": true,
+    "feedback_category": "regex_too_broad",
+    "issues_identified": [
+        "Regex matches unrelated brands (Starburst, Starbucks Hotel)",
+        "Need negative lookahead to exclude non-coffee businesses"
+    ],
+    "misclassified_combos": [12345, 67890],
+    "refinement_prompt": "Generate regex that matches Starbucks coffee shops but excludes: 1) Starburst candy (different brand), 2) Starbucks Hotel (hospitality, not coffee). Use negative lookahead patterns. Analyze combos 12345 and 67890 to understand false positive patterns.",
+    "recommended_action": "regenerate_metadata",
+    "feedback_stored": true,
+    "storage_location": "s3://brand-generator-rwrd-023-eu-west-1/feedback/brand_123_v2.json"
+}
+```
+
+
+
+### 9. Learning Analytics Agent
+
+**Purpose**: Analyzes historical feedback to identify systematic improvements and track accuracy trends over time.
+
+**Responsibilities**:
+- Aggregate feedback across all brands
+- Identify common issues (e.g., wallet handling problems, sector mismatches)
+- Calculate accuracy metrics per brand (false positive rate, approval rate, iteration count)
+- Track accuracy improvements over time
+- Generate improvement recommendations for system-wide issues
+- Produce reports for management showing trends and insights
+- Identify problematic brands requiring additional attention
+
+**Tools**:
+- `analyze_feedback_trends(time_range: str, filters: dict) -> dict`: Identify patterns across brands
+- `calculate_accuracy_metrics(brandid: int) -> dict`: Measure classification accuracy
+- `calculate_improvement_rate(brandid: int, time_range: str) -> float`: Track accuracy changes
+- `identify_common_issues(min_frequency: int) -> list`: Find systematic problems
+- `generate_improvement_report(time_range: str) -> dict`: Create management summary
+- `identify_problematic_brands(threshold: float) -> list`: Find brands needing attention
+- `analyze_wallet_handling_effectiveness() -> dict`: Assess payment wallet detection accuracy
+- `recommend_system_improvements() -> list`: Generate actionable recommendations
+
+**Interface**:
+```python
+# Input: Analyze Trends
+{
+    "action": "analyze_trends",
+    "time_range": "last_30_days",
+    "filters": {
+        "min_feedback_count": 2
+    }
+}
+
+# Output
+{
+    "analysis_period": "2026-01-15 to 2026-02-15",
+    "total_brands_processed": 3000,
+    "brands_with_feedback": 450,
+    "common_issues": [
+        {
+            "issue": "regex_too_broad",
+            "frequency": 120,
+            "percentage": 26.7,
+            "example_brands": [123, 456, 789]
+        },
+        {
+            "issue": "wallet_text_not_excluded",
+            "frequency": 85,
+            "percentage": 18.9,
+            "example_brands": [234, 567]
+        },
+        {
+            "issue": "mccid_mismatch",
+            "frequency": 60,
+            "percentage": 13.3,
+            "example_brands": [345, 678]
+        }
+    ],
+    "accuracy_trends": {
+        "average_approval_rate": 0.85,
+        "average_iterations_per_brand": 1.8,
+        "improvement_rate": 0.12  # 12% improvement over period
+    },
+    "problematic_brands": [
+        {
+            "brandid": 999,
+            "brandname": "Apple",
+            "feedback_count": 8,
+            "approval_rate": 0.3,
+            "issue": "Ambiguous name matches apple orchards"
+        }
+    ],
+    "recommendations": [
+        "Improve wallet detection to handle 'SQ *' prefix patterns",
+        "Add negative lookahead training for common false positives",
+        "Review brands with common words (Apple, Shell, etc.) for disambiguation"
+    ]
+}
+
+# Input: Generate Report
+{
+    "action": "generate_report",
+    "time_range": "last_month",
+    "report_type": "executive_summary"
+}
+
+# Output
+{
+    "report_title": "Brand Metadata Generator - Monthly Performance Report",
+    "period": "January 2026",
+    "summary": {
+        "brands_processed": 3000,
+        "brands_approved_first_attempt": 2550,
+        "brands_requiring_feedback": 450,
+        "average_iterations": 1.8,
+        "overall_approval_rate": 0.92
+    },
+    "accuracy_improvement": "+12% vs previous month",
+    "top_issues": ["regex_too_broad", "wallet_handling", "mccid_mismatch"],
+    "success_stories": [
+        "Wallet detection improved from 75% to 89% accuracy",
+        "Average iterations reduced from 2.3 to 1.8"
+    ],
+    "action_items": [
+        "Focus on ambiguous brand names (Apple, Shell, etc.)",
+        "Enhance wallet pattern detection",
+        "Review MCCID-sector mappings for retail brands"
+    ]
+}
+```
+
+
+
 ## Data Models
 
 ### Input Data Models (Athena Tables)
@@ -773,6 +951,74 @@ graph LR
 }
 ```
 
+**Human Feedback**:
+```python
+{
+    "feedback_id": str,                 # Unique identifier (UUID)
+    "brandid": int,
+    "metadata_version": int,            # Version of metadata being reviewed
+    "timestamp": str,                   # ISO 8601 format
+    "feedback_type": str,               # "general", "specific_examples", "approval", "rejection"
+    "feedback_text": str,               # Natural language feedback
+    "misclassified_combos": list[int],  # Specific ccids mentioned (if any)
+    "action_taken": str,                # "approved", "rejected", "regenerate_requested"
+    "reviewer_id": str,                 # ID of human reviewer
+    "issues_identified": list[str],     # Parsed issues from feedback
+    "refinement_prompt": str            # Generated prompt for metadata production (if applicable)
+}
+```
+
+**Feedback History Entry**:
+```python
+{
+    "brandid": int,
+    "feedback_history": list[{
+        "version": int,
+        "timestamp": str,
+        "metadata": {
+            "regex": str,
+            "mccids": list[int],
+            "confidence_score": float
+        },
+        "feedback": {
+            "feedback_id": str,
+            "feedback_type": str,
+            "feedback_text": str,
+            "action_taken": str
+        },
+        "classification_results": {
+            "total_matched": int,
+            "confirmed": int,
+            "excluded": int,
+            "ties_resolved": int
+        }
+    }],
+    "current_version": int,
+    "total_iterations": int,
+    "approval_status": str              # "pending", "approved", "needs_work", "escalated"
+}
+```
+
+**Learning Analytics Metrics**:
+```python
+{
+    "brandid": int,
+    "accuracy_metrics": {
+        "approval_rate": float,         # Percentage of first-attempt approvals
+        "false_positive_rate": float,   # Percentage of matched combos excluded
+        "iteration_count": int,         # Number of regeneration cycles
+        "feedback_count": int,          # Total feedback submissions
+        "last_updated": str             # ISO 8601 timestamp
+    },
+    "issue_categories": dict[str, int], # Count of each issue type
+    "improvement_trend": {
+        "initial_approval_rate": float,
+        "current_approval_rate": float,
+        "improvement_percentage": float
+    }
+}
+```
+
 
 
 ## Detailed Workflow Design
@@ -910,9 +1156,124 @@ graph LR
 
 
 
-### Phase 5: Workflow Completion
+### Phase 5: Human Review and Feedback (NEW)
 
-**Step 5.1: Aggregate Results**
+**Step 5.1: Store Preliminary Results**
+- Data Transformation Agent writes preliminary classification results to S3
+- Results include: metadata used, matched combos, confirmed combos, excluded combos, ties resolved
+- Mark brand status as "pending_human_review"
+
+**Step 5.2: Display in Quick_Suite Dashboard**
+- Quick_Suite loads preliminary results for human review
+- Display grouped by brand with:
+  - Brand name and sector
+  - Regex pattern and MCCID list used
+  - Total combos matched, confirmed, excluded
+  - Sample narratives (matched and excluded)
+  - Confidence score
+- Provide feedback input interface
+
+**Step 5.3: Human Reviews Classifications**
+- Human examines classification results per brand
+- Reviews sample narratives to assess accuracy
+- Identifies issues (false positives, missed patterns, etc.)
+- Provides feedback through interface:
+  - General text feedback describing issues
+  - Specific combo IDs that are misclassified
+  - Approve or reject classifications
+
+**Step 5.4: Submit Feedback**
+- System stores feedback in S3 and DynamoDB
+- Feedback includes: brandid, metadata_version, feedback_type, text, timestamp
+- If approved: Mark brand as complete, proceed to Phase 7
+- If rejected or issues identified: Proceed to Phase 6
+
+### Phase 6: Feedback Processing and Learning (NEW)
+
+**Step 6.1: Parse Feedback**
+- Orchestrator invokes Feedback Processing Agent
+- Agent parses natural language feedback
+- Extracts structured information:
+  - Issue categories (regex too broad, missing patterns, MCCID issues)
+  - Specific combo examples mentioned
+  - Patterns in misclassifications
+
+**Step 6.2: Analyze Misclassified Combos**
+- If specific combos mentioned, retrieve their details from Athena
+- Analyze narratives to identify common patterns
+- Compare to current regex to understand why they matched/didn't match
+- Identify what needs to change
+
+**Step 6.3: Generate Refinement Prompt**
+- Feedback Processing Agent creates specific guidance for Metadata Production Agent
+- Prompt includes:
+  - Issues identified from feedback
+  - Specific examples to consider
+  - Patterns to include or exclude
+  - MCCID adjustments needed
+
+**Step 6.4: Regenerate Metadata**
+- Orchestrator invokes Metadata Production Agent with refinement prompt
+- Agent generates new regex pattern and MCCID list
+- Incorporates feedback and learns from examples
+- Increment metadata version number
+
+**Step 6.5: Re-apply and Re-classify**
+- Data Transformation Agent applies new metadata to combos
+- Confirmation Agent reviews new matches
+- Tiebreaker Agent resolves any new ties
+- Generate new preliminary results
+
+**Step 6.6: Check Iteration Limit**
+- If iterations < 10: Return to Phase 5 (human review)
+- If iterations >= 10: Escalate to management, mark for manual intervention
+
+**Step 6.7: Update Learning Analytics**
+- Learning Analytics Agent records feedback and iteration
+- Updates accuracy metrics for the brand
+- Contributes to system-wide trend analysis
+
+### Phase 7: Final Storage and Analytics (UPDATED)
+
+**Step 7.1: Store Final Approved Results**
+- Data Transformation Agent writes final results to S3
+- Include complete metadata history with all versions
+- Include all feedback received
+- Mark brand as "completed"
+
+**Step 7.2: Update Learning Analytics**
+- Learning Analytics Agent updates metrics:
+  - Approval rate for this brand
+  - Total iterations required
+  - Issue categories encountered
+  - Improvement over iterations
+- Aggregate into system-wide statistics
+
+**Step 7.3: Generate Reports**
+- Create summary report with:
+  - Processing statistics
+  - Quality metrics (average confidence score, approval rates)
+  - Issue breakdown (wallet complications, ties, ambiguous matches)
+  - Brands requiring human review
+  - Accuracy trends over time
+- Store report in S3 for management review
+
+**Step 7.4: Update Quick_Suite Dashboard**
+- Push final metrics to Quick_Suite for visualization
+- Update brand status indicators
+- Display accuracy trends and improvements
+- Highlight any brands requiring attention
+
+**Step 7.5: Return to Step Functions**
+- Orchestrator returns completion status to Step Functions
+- Include summary statistics and any escalations
+- Step Functions marks workflow as complete
+
+### Phase 8: Workflow Completion
+
+### Phase 8: Workflow Completion
+
+**Step 8.1: Aggregate Results**
 - Orchestrator collects statistics:
   - Total brands processed
   - Total combos matched across all brands
@@ -921,19 +1282,19 @@ graph LR
   - Ties resolved
   - Combos requiring human review
 
-**Step 5.2: Generate Report**
+**Step 8.2: Generate Report**
 - Create summary report with:
   - Processing statistics
   - Quality metrics (average confidence score, exclusion rates)
   - Issue breakdown (wallet complications, ties, ambiguous matches)
   - Combos requiring human review
 
-**Step 5.3: Update Quick_Suite Dashboard**
+**Step 8.3: Update Quick_Suite Dashboard**
 - Push metrics to Quick_Suite for visualization
 - Update brand status indicators
 - Highlight brands and combos requiring attention
 
-**Step 5.4: Return to Step Functions**
+**Step 8.4: Return to Step Functions**
 - Orchestrator returns completion status to Step Functions
 - Step Functions marks workflow as complete
 
@@ -983,6 +1344,143 @@ When wallets are detected:
 - Test regex against both wallet-affected and clean narratives
 - Ensure coverage remains high (>90%)
 - Ensure false positive rate remains low (<5%)
+
+
+
+## MCP Integration for Brand Validation
+
+### Overview
+
+The Commercial Assessment Agent integrates with external data sources via Model Context Protocol (MCP) to validate brand information against authoritative sources. This ensures brand names, sectors, and classifications are accurate and up-to-date.
+
+### MCP Servers
+
+**1. Crunchbase MCP Server**
+- **Purpose**: Access company profiles, funding data, and industry classifications
+- **Provider**: cyreslab-ai/crunchbase-mcp-server
+- **Tools Available**:
+  - `search_companies`: Search for companies by name
+  - `get_company`: Retrieve detailed company profile
+  - `get_company_funding`: Get funding rounds and investors
+  - `get_company_people`: Access executive and employee data
+- **Use Cases**:
+  - Validate brand name matches real company
+  - Verify sector classification
+  - Check if company is active or acquired
+  - Identify parent companies and subsidiaries
+
+**2. Custom Brand Registry MCP Server** (To Be Built)
+- **Purpose**: Access UK retail brand registry and sector mappings
+- **Tools Available**:
+  - `search_brands`: Search brand registry by name
+  - `get_brand_info`: Retrieve brand details and aliases
+  - `validate_sector`: Check sector classification
+  - `get_mcc_mappings`: Get typical MCCs for brand sector
+- **Use Cases**:
+  - Validate UK-specific retail brands
+  - Access brand aliases and variations
+  - Map sectors to expected MCCIDs
+  - Identify regional brand variations
+
+### MCP Configuration
+
+Configuration file: `.kiro/settings/mcp.json`
+
+```json
+{
+  "mcpServers": {
+    "crunchbase": {
+      "command": "npx",
+      "args": ["-y", "@cyreslab-ai/crunchbase-mcp-server"],
+      "env": {
+        "CRUNCHBASE_API_KEY": "${CRUNCHBASE_API_KEY}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "search_companies",
+        "get_company",
+        "get_company_funding"
+      ]
+    },
+    "brand-registry": {
+      "command": "python",
+      "args": ["-m", "brand_registry_mcp.server"],
+      "env": {
+        "BRAND_REGISTRY_DB": "brand_metadata_generator_db",
+        "AWS_REGION": "eu-west-1"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "search_brands",
+        "get_brand_info",
+        "validate_sector"
+      ]
+    }
+  }
+}
+```
+
+### Commercial Assessment Agent MCP Integration
+
+**Workflow**:
+
+1. **Query MCP for Brand Data**
+   ```python
+   # Agent uses MCP tool
+   result = search_companies(query=brandname)
+   if result.found:
+       company_data = get_company(company_id=result.id)
+   ```
+
+2. **Extract Validation Data**
+   - Official company name
+   - Primary industry/sector
+   - Company status (active, acquired, defunct)
+   - Parent company (if applicable)
+
+3. **Validate Against Database**
+   - Compare MCP data with database brand record
+   - Flag discrepancies (name mismatch, sector mismatch)
+   - Suggest corrections if needed
+
+4. **Fallback to Web Search**
+   - If MCP returns no results, use web search
+   - If MCP data is incomplete, supplement with web search
+   - Log when fallback is used for analytics
+
+5. **Cache Results**
+   - Store MCP responses in DynamoDB with TTL (30 days)
+   - Reduce API calls for frequently validated brands
+   - Refresh cache if brand data changes
+
+### Error Handling
+
+**MCP Connection Failures**:
+- Retry with exponential backoff (3 attempts)
+- Fall back to web search if MCP unavailable
+- Log error for monitoring and alerting
+- Continue workflow without blocking
+
+**API Rate Limits**:
+- Implement request throttling
+- Queue requests if rate limit reached
+- Use cached data when available
+- Prioritize high-value brands
+
+**Data Quality Issues**:
+- Validate MCP response structure
+- Handle missing or incomplete data gracefully
+- Cross-reference multiple sources when possible
+- Flag low-confidence validations for human review
+
+### Benefits
+
+1. **Authoritative Data**: Access to verified company databases
+2. **Reduced Errors**: Fewer sector misclassifications
+3. **Automation**: Less manual brand validation needed
+4. **Scalability**: Handle 3,000+ brands efficiently
+5. **Audit Trail**: Full logging of validation sources
+6. **Flexibility**: Easy to add new MCP servers as needed
 
 
 

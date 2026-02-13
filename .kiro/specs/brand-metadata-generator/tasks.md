@@ -367,6 +367,210 @@ This implementation plan breaks down the brand-metadata-generator system into di
 - [ ] 16. Final Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
+- [ ] 17. MCP Integration for Commercial Assessment
+  - [ ] 17.1 Configure Crunchbase MCP Server
+    - Add Crunchbase MCP configuration to .kiro/settings/mcp.json
+    - Set up API key in environment variables
+    - Test MCP connectivity
+    - _Requirements: 15.1, 15.2_
+  
+  - [ ] 17.2 Build Custom Brand Registry MCP Server
+    - Create Python MCP server for brand registry
+    - Implement search_brands tool
+    - Implement get_brand_info tool
+    - Implement validate_sector tool
+    - Connect to Athena database
+    - _Requirements: 15.1_
+  
+  - [ ] 17.3 Integrate MCP into Commercial Assessment Agent
+    - Add MCP tool usage to agent
+    - Implement query logic for brand validation
+    - Add fallback to web search
+    - Implement response caching in DynamoDB
+    - Add error handling and retry logic
+    - _Requirements: 15.3, 15.4, 15.5, 15.9, 15.10_
+  
+  - [ ] 17.4 Write tests for MCP integration
+    - Test MCP connectivity
+    - Test brand validation with MCP data
+    - Test fallback to web search
+    - Test caching mechanism
+    - Test error handling
+    - _Requirements: 15.6_
+
+- [ ] 18. Feedback Processing Agent
+  - [ ] 18.1 Implement feedback parsing tools
+    - Create parse_feedback tool for natural language processing
+    - Create identify_misclassified_combos tool
+    - Create analyze_feedback_category tool
+    - _Requirements: 14.2, 14.3_
+  
+  - [ ] 18.2 Implement refinement prompt generation
+    - Create generate_refinement_prompt tool
+    - Analyze feedback to extract actionable guidance
+    - Generate specific prompts for Metadata Production Agent
+    - _Requirements: 14.4, 14.5_
+  
+  - [ ] 18.3 Implement feedback storage
+    - Create store_feedback tool for S3 and DynamoDB
+    - Create retrieve_feedback_history tool
+    - Implement version tracking
+    - _Requirements: 14.4, 14.9_
+  
+  - [ ] 18.4 Implement agent handler
+    - Set up Strands Agent with instructions
+    - Register all tools
+    - Implement handler function for AgentCore
+    - _Requirements: 14.5_
+  
+  - [ ] 18.5 Write tests for feedback processing agent
+    - Test feedback parsing with various input types
+    - Test refinement prompt generation
+    - Test feedback storage and retrieval
+    - Test combo ID extraction
+    - _Requirements: 14.2, 14.3, 14.4_
+
+- [ ] 19. Learning Analytics Agent
+  - [ ] 19.1 Implement trend analysis tools
+    - Create analyze_feedback_trends tool
+    - Create identify_common_issues tool
+    - Aggregate feedback across brands
+    - _Requirements: 16.6, 16.11_
+  
+  - [ ] 19.2 Implement accuracy metrics calculation
+    - Create calculate_accuracy_metrics tool
+    - Create calculate_improvement_rate tool
+    - Track false positive/negative rates
+    - _Requirements: 16.7, 16.8_
+  
+  - [ ] 19.3 Implement report generation
+    - Create generate_improvement_report tool
+    - Create identify_problematic_brands tool
+    - Generate executive summaries
+    - _Requirements: 16.13_
+  
+  - [ ] 19.4 Implement agent handler
+    - Set up Strands Agent with instructions
+    - Register all tools
+    - Implement handler function for AgentCore
+    - _Requirements: 16.6_
+  
+  - [ ] 19.5 Write tests for learning analytics agent
+    - Test trend analysis with sample data
+    - Test accuracy metrics calculation
+    - Test report generation
+    - Test problematic brand identification
+    - _Requirements: 16.7, 16.8, 16.13_
+
+- [ ] 20. Human Review Interface
+  - [ ] 20.1 Extend Quick_Suite dashboard for review
+    - Create brand review page
+    - Display classification results grouped by brand
+    - Show regex pattern and MCCID list
+    - Display sample matched and excluded narratives
+    - Add confidence score visualization
+    - _Requirements: 14.2, 12.1, 12.2_
+  
+  - [ ] 20.2 Implement feedback input forms
+    - Create general feedback text input
+    - Create specific combo flagging interface
+    - Add approve/reject buttons
+    - Implement feedback submission
+    - _Requirements: 14.3_
+  
+  - [ ] 20.3 Implement feedback history view
+    - Display all previous feedback for a brand
+    - Show metadata version history
+    - Display iteration count and trends
+    - _Requirements: 14.9_
+  
+  - [ ] 20.4 Add real-time status updates
+    - Show processing status per brand
+    - Display when feedback is being processed
+    - Show regeneration progress
+    - _Requirements: 12.1_
+
+- [ ] 21. Updated Workflow Integration
+  - [ ] 21.1 Update Step Functions workflow
+    - Add human review phase after classification
+    - Add feedback processing loop
+    - Add iteration limit checks (max 10)
+    - Add escalation path for exceeded limits
+    - _Requirements: 14.6, 14.7, 14.8, 14.10, 16.14_
+  
+  - [ ] 21.2 Implement feedback processing loop
+    - Invoke Feedback Processing Agent
+    - Regenerate metadata based on feedback
+    - Re-apply metadata to combos
+    - Re-run classification agents
+    - Return to human review
+    - _Requirements: 14.5, 14.6, 14.7_
+  
+  - [ ] 21.3 Update Lambda functions
+    - Create Lambda for feedback submission
+    - Create Lambda for feedback processing trigger
+    - Update orchestrator Lambda for new phases
+    - _Requirements: 14.5_
+  
+  - [ ] 21.4 Update monitoring and logging
+    - Add CloudWatch metrics for feedback phases
+    - Log all feedback submissions
+    - Track iteration counts per brand
+    - Monitor escalations
+    - _Requirements: 14.4, 15.8_
+
+- [ ] 22. Integration Testing for HITL Workflow
+  - [ ] 22.1 Write integration test for feedback loop
+    - Set up test brand with known issues
+    - Submit feedback through interface
+    - Verify feedback processing
+    - Verify metadata regeneration
+    - Verify re-classification
+    - Verify return to human review
+    - _Requirements: 14.1-14.11_
+  
+  - [ ] 22.2 Write integration test for MCP validation
+    - Test Crunchbase MCP integration
+    - Test brand validation workflow
+    - Test fallback to web search
+    - Verify caching behavior
+    - _Requirements: 15.1-15.10_
+  
+  - [ ] 22.3 Write integration test for learning analytics
+    - Generate sample feedback data
+    - Run trend analysis
+    - Verify accuracy metrics
+    - Verify report generation
+    - _Requirements: 16.6-16.14_
+
+- [ ] 23. Final System Testing and Deployment
+  - [ ] 23.1 End-to-end testing with HITL
+    - Test complete workflow from ingestion to approval
+    - Include multiple feedback iterations
+    - Test iteration limit and escalation
+    - Verify all agents working together
+    - _Requirements: All_
+  
+  - [ ] 23.2 Deploy all agents to production
+    - Deploy Feedback Processing Agent
+    - Deploy Learning Analytics Agent
+    - Update existing agents with MCP integration
+    - Deploy to production environment
+    - _Requirements: 11.1_
+  
+  - [ ] 23.3 Configure production monitoring
+    - Set up CloudWatch alarms for new phases
+    - Configure SNS notifications
+    - Set up Quick_Suite production dashboard
+    - _Requirements: 12.6, 12.7_
+  
+  - [ ] 23.4 Create operational runbooks
+    - Document feedback processing procedures
+    - Document escalation procedures
+    - Document MCP troubleshooting
+    - Document learning analytics interpretation
+    - _Requirements: 11.13_
+
 ## Notes
 
 - Each task references specific requirements for traceability

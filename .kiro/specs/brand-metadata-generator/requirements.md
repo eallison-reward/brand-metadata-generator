@@ -27,6 +27,14 @@ The Brand Metadata Generator is a multi-agent system designed to automatically g
 - **Quick_Suite**: AWS technology for agent-specific user interface and monitoring
 - **Terraform**: Infrastructure as Code (IaC) tool for managing AWS deployments
 - **GitHub_Repository**: Version control repository for storing all project code, configurations, and documentation
+- **MCP**: Model Context Protocol, an open standard for connecting AI agents to external data sources
+- **MCP_Server**: A server implementing the Model Context Protocol to provide access to specific data sources or APIs
+- **HITL**: Human-in-the-Loop, a workflow pattern where humans review and provide feedback on AI outputs
+- **Feedback_Processing_Agent**: Agent that parses human feedback and generates refinement prompts
+- **Learning_Analytics_Agent**: Agent that analyzes feedback trends and tracks accuracy improvements over time
+- **Metadata_Version**: A specific iteration of regex pattern and MCCID list for a brand, tracked with version history
+- **Feedback_History**: Complete record of all human feedback with timestamps and associated metadata versions
+- **Iteration_Limit**: Maximum number of metadata regeneration attempts (10) before management escalation
 
 ## Requirements
 
@@ -210,3 +218,61 @@ The Brand Metadata Generator is a multi-agent system designed to automatically g
 8. THE System SHALL use Git branches for feature development and maintain a stable main branch
 9. THE System SHALL require pull requests and code reviews before merging changes to the main branch
 10. THE System SHALL tag releases with semantic versioning for deployment tracking
+
+
+### Requirement 14: Human-in-the-Loop Feedback System
+
+**User Story:** As a quality assurance specialist, I want to review classified combos and provide feedback, so that the system learns and improves accuracy over time.
+
+#### Acceptance Criteria
+
+1. WHEN metadata is applied to combos and classification is complete, THE System SHALL store preliminary results for human review in S3
+2. WHEN a human accesses the review interface, THE System SHALL display combos grouped by brand with classification details including regex pattern, MCCID list, and confidence scores
+3. WHEN a human provides feedback, THE System SHALL accept both general text feedback and specific combo examples
+4. WHEN feedback is submitted, THE System SHALL store it in S3 and DynamoDB with timestamp, brandid, feedback_type, and metadata_version
+5. WHEN feedback indicates issues or rejection, THE System SHALL invoke the Feedback Processing Agent to parse and process the feedback
+6. WHEN feedback is processed, THE System SHALL generate refinement prompts and invoke Metadata Production Agent to regenerate metadata
+7. WHEN metadata is regenerated, THE System SHALL re-apply it to combos and re-run classification agents
+8. WHEN regeneration is complete, THE System SHALL return results to human review for approval
+9. THE System SHALL track all feedback iterations with full version history per brand
+10. THE System SHALL limit iterations to 10 per brand before escalating to management review
+11. WHEN a human approves classifications, THE System SHALL mark the brand as complete and store final results
+
+### Requirement 15: MCP Integration for Brand Validation
+
+**User Story:** As a commercial assessment agent, I want to query external brand databases via Model Context Protocol (MCP), so that brand validation is accurate and based on authoritative data sources.
+
+#### Acceptance Criteria
+
+1. THE System SHALL configure MCP servers in .kiro/settings/mcp.json for brand and company data access
+2. THE Commercial Assessment Agent SHALL connect to Crunchbase MCP server for company information
+3. WHEN validating a brand, THE Commercial Assessment Agent SHALL query MCP server with brand name
+4. WHEN MCP returns company data, THE Agent SHALL extract official name, sector, and industry classification
+5. WHEN MCP data is available, THE Agent SHALL use it as primary source for sector validation
+6. WHEN MCP data is unavailable or incomplete, THE Agent SHALL fall back to web search
+7. THE System SHALL support multiple MCP servers including Crunchbase and custom brand registry
+8. THE System SHALL log all MCP interactions including queries, responses, and errors for audit purposes
+9. THE System SHALL handle MCP connection failures gracefully with retry logic and fallback mechanisms
+10. THE Commercial Assessment Agent SHALL cache MCP responses to reduce API calls and improve performance
+
+### Requirement 16: Iterative Learning and Continuous Improvement
+
+**User Story:** As a system operator, I want the system to learn from human feedback and improve over time, so that classification accuracy increases with use and manual intervention decreases.
+
+#### Acceptance Criteria
+
+1. THE System SHALL store all human feedback with associated metadata version, timestamp, and brandid
+2. THE Feedback Processing Agent SHALL parse natural language feedback to extract structured information
+3. WHEN feedback contains specific combo examples, THE Agent SHALL identify combo IDs and analyze misclassification patterns
+4. WHEN feedback indicates regex issues, THE Agent SHALL generate specific guidance for pattern refinement
+5. WHEN feedback indicates MCCID issues, THE Agent SHALL analyze MCCID distributions and suggest adjustments
+6. THE Learning Analytics Agent SHALL aggregate feedback across all brands to identify systematic issues
+7. THE Learning Analytics Agent SHALL calculate accuracy metrics per brand including false positive rate, false negative rate, and human approval rate
+8. THE System SHALL track accuracy trends over time and generate improvement reports
+9. WHEN a brand receives frequent corrections, THE System SHALL lower its confidence score and route to human review earlier
+10. THE System SHALL identify problematic brands requiring additional attention based on feedback frequency
+11. THE Learning Analytics Agent SHALL analyze payment wallet handling effectiveness and suggest improvements
+12. THE System SHALL maintain a feedback history table in DynamoDB with searchable metadata
+13. THE System SHALL generate monthly reports showing accuracy improvements, common issues, and recommendations
+14. THE System SHALL use historical feedback to improve initial metadata generation for similar brands
+

@@ -27,9 +27,11 @@ The system uses 7 specialized AI agents orchestrated through AWS Step Functions 
 2. **Data Transformation Agent** - Handles data ingestion, validation, and storage
 3. **Evaluator Agent** - Assesses data quality and calculates confidence scores
 4. **Metadata Production Agent** - Generates regex patterns and MCCID lists
-5. **Commercial Assessment Agent** - Validates brand identity against real-world data
+5. **Commercial Assessment Agent** - Validates brand identity against real-world data via MCP
 6. **Confirmation Agent** - Reviews matched combos to exclude false positives
 7. **Tiebreaker Agent** - Resolves combos matching multiple brands
+8. **Feedback Processing Agent** - Parses human feedback and generates refinement prompts
+9. **Learning Analytics Agent** - Analyzes trends and tracks accuracy improvements
 
 ## Project Structure
 
