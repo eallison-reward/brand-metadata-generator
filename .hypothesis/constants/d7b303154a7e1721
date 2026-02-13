@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\strands\experimental\hooks\events.py
+# hypothesis_version: 6.148.7
+
+['BidiAgent', 'cancel_tool', 'error', 'result', 'selected_tool', 'tool_use', 'user_speech']

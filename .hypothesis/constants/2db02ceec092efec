@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\s3transfer\compat.py
+# hypothesis_version: 6.148.7
+
+['posix_fallocate', 'read', 'readable', 'seek', 'seekable', 'tell', 'win']

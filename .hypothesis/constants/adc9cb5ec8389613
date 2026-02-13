@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\strands\tools\executors\_executor.py
+# hypothesis_version: 6.148.7
+
+['Agent | BidiAgent', 'agent', 'auto', 'content', 'description', 'error', 'inputSchema', 'json', 'messages', 'model', 'name', 'status', 'success', 'system_prompt', 'text', 'toolResult', 'toolSpec', 'toolUseId', 'tool_config', 'user']

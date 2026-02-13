@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\strands\hooks\events.py
+# hypothesis_version: 6.148.7
+
+['cancel_tool', 'result', 'selected_tool', 'tool_use']

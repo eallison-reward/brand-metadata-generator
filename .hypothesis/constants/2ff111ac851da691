@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\strands\types\media.py
+# hypothesis_version: 6.148.7
+
+['csv', 'doc', 'docx', 'flv', 'gif', 'html', 'jpeg', 'md', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'pdf', 'png', 'three_gp', 'txt', 'webm', 'webp', 'wmv', 'xls', 'xlsx']

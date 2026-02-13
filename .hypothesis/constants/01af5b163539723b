@@ -1,0 +1,4 @@
+# file: C:\Users\eda\OneDrive - SPORTS LOYALTY CARD LTD\Projects\Insight\brand_generator\agents\confirmation\agentcore_handler.py
+# hypothesis_version: 6.148.7
+
+[200, 'ConfirmationAgent', 'action', 'body', 'brandid', 'brandname', 'matched_combos', 'mcc_table', 'metadata', 'review_matches', 'statusCode']

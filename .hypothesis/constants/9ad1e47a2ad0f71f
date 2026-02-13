@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\rfc3987_syntax\syntax_helpers.py
+# hypothesis_version: 6.148.7
+
+['absolute_iri', 'alpha', 'dec_octet', 'digit', 'earley', 'h16', 'hexdig', 'iauthority', 'ifragment', 'ihier_part', 'ihost', 'ip_literal', 'ipath', 'ipath_abempty', 'ipath_absolute', 'ipath_empty', 'ipath_noscheme', 'ipath_rootless', 'ipchar', 'iprivate', 'ipv4address', 'ipv6address', 'ipvfuture', 'iquery', 'ireg_name', 'irelative_part', 'irelative_ref', 'iri', 'iri_reference', 'isegment', 'isegment_nz', 'isegment_nz_nc', 'iunreserved', 'iuserinfo', 'ls32', 'non_zero', 'pct_encoded', 'port', 'scheme', 'sub_delims', 'syntax_rfc3987.lark', 'ucschar', 'unreserved']

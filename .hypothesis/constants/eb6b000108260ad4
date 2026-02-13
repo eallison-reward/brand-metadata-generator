@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\strands\agent\agent_result.py
+# hypothesis_version: 6.148.7
+
+['AgentResult', 'agent_result', 'content', 'message', 'stop_reason', 'text', 'type']

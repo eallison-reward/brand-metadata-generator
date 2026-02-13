@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\botocore\discovery.py
+# hypothesis_version: 6.148.7
+
+[421, 'Address', 'CachePeriodInMinutes', 'Code', 'Endpoints', 'Error', 'Expiration', 'HTTPStatusCode', 'Identifiers', 'Operation', 'ResponseMetadata', 'context', 'discovery', 'endpointdiscoveryid', 'http', 'https://', 'identifiers', 'required', 'structure']

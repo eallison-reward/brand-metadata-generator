@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\rfc3986_validator.py
+# hypothesis_version: 6.148.7
+
+['0.1.1', 'Invalid rule', 'URI', 'URI_reference', '^{uri_re}$', 'validate_rfc3986']

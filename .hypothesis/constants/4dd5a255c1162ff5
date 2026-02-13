@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\uri_template\charset.py
+# hypothesis_version: 6.148.7
+
+["!$&'()*+,;=", '-._~', '.', '0123456789', ':/?#[]@', '_']

@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\fqdn\__init__.py
+# hypothesis_version: 6.148.7
+
+[253, '.', 'allow_underscores', 'fqdn', 'fqdn must be str', 'got extra kwargs: {}', 'invalid FQDN `{0}`', 'min_labels', '{0}.']

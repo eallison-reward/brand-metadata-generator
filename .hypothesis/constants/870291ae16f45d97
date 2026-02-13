@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\strands\tools\registry.py
+# hypothesis_version: 6.148.7
+
+['$ref', '*.py', '-', '.', '.py', 'TOOL_SPEC', '_', '__', '__file__', '__init__', 'description', 'inputSchema', 'json', 'name', 'object', 'path', 'properties', 'required', 'spec', 'string', 'toolSpec', 'tools', 'type']

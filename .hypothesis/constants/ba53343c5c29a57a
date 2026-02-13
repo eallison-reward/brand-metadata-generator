@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\strands\tools\tools.py
+# hypothesis_version: 6.148.7
+
+['$ref', '^[a-zA-Z0-9_\\-]{1,}$', 'description', 'inputSchema', 'json', 'name', 'object', 'properties', 'python', 'required', 'string', 'tool name missing', 'type']

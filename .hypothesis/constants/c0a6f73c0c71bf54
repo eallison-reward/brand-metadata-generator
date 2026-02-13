@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\opentelemetry\instrumentation\utils.py
+# hypothesis_version: 6.148.7
+
+[100, 299, 399, 499, '%', '%%', '.', '__wrapped__']
