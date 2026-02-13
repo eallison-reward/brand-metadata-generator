@@ -74,43 +74,43 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Test S3 read/write operations
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 8.4, 8.5_
 
-- [ ] 4. Evaluator Agent
-  - [ ] 4.1 Implement narrative analysis tools
+- [x] 4. Evaluator Agent
+  - [x] 4.1 Implement narrative analysis tools
     - Create analyze_narratives tool for pattern consistency
     - Calculate narrative variance metrics
     - _Requirements: 4.1, 4.3_
   
-  - [ ] 4.2 Implement payment wallet detection
+  - [x] 4.2 Implement payment wallet detection
     - Create detect_payment_wallets tool
     - Identify PAYPAL, PP, SQ, SQUARE indicators (case-insensitive)
     - Flag wallet-affected combo records
     - _Requirements: 3.1, 3.2_
   
-  - [ ] 4.3 Implement MCCID analysis tools
+  - [x] 4.3 Implement MCCID analysis tools
     - Create assess_mccid_consistency tool
     - Check MCCID alignment with brand sector
     - Identify wallet-specific MCCIDs
     - _Requirements: 4.2, 4.4, 3.4_
   
-  - [ ] 4.4 Implement confidence scoring
+  - [x] 4.4 Implement confidence scoring
     - Create calculate_confidence_score tool
     - Incorporate data quality metrics
     - Return score between 0.0 and 1.0
     - _Requirements: 4.6_
   
-  - [ ] 4.5 Implement production prompt generation
+  - [x] 4.5 Implement production prompt generation
     - Create generate_production_prompt tool
     - Describe identified issues for metadata production
     - Provide guidance on wallet handling
     - _Requirements: 4.5, 3.5_
   
-  - [ ] 4.6 Write property tests for evaluator agent
+  - [x] 4.6 Write property tests for evaluator agent
     - **Property 4: Wallet Detection and Flagging**
     - **Property 7: Consistency Assessment**
     - **Property 10: Confidence Score Calculation**
     - **Validates: Requirements 3.1, 3.2, 4.1, 4.2, 4.6**
   
-  - [ ] 4.7 Write unit tests for evaluator agent
+  - [x] 4.7 Write unit tests for evaluator agent
     - Test narrative variance calculation
     - Test wallet detection with various indicators
     - Test confidence score edge cases
