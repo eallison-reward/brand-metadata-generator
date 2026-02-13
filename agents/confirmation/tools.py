@@ -137,6 +137,8 @@ def _analyze_combo_match(brandname: str, narrative: str, mccid: int,
         r'\b(STORE|SHOP|MARKET|STATION|CAFE|RESTAURANT|INC|LTD|LLC|CORP)\b',
         r'#\d+',  # Store number
         r'\d{3,}',  # Long numbers (often store IDs)
+        r'\.(COM|NET|ORG|CO\.UK|IO)\b',  # Domain extensions
+        r'\b(PRIME|PLUS|PRO|PREMIUM)\b',  # Service tiers
     ]
     
     has_business_context = any(
