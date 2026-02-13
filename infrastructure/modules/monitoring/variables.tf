@@ -21,13 +21,23 @@ variable "agent_names" {
   description = "List of agent names for log groups"
   type        = list(string)
   default = [
-    "orchestrator-agent",
-    "data-transformation-agent",
-    "evaluator-agent",
-    "metadata-production-agent",
-    "commercial-assessment-agent",
-    "confirmation-agent",
-    "tiebreaker-agent"
+    "orchestrator",
+    "data-transformation",
+    "evaluator",
+    "metadata-production",
+    "commercial-assessment",
+    "confirmation",
+    "tiebreaker"
+  ]
+}
+
+variable "lambda_function_names" {
+  description = "List of Lambda function names for log groups"
+  type        = list(string)
+  default = [
+    "workflow-init",
+    "orchestrator-invoke",
+    "result-aggregation"
   ]
 }
 
@@ -52,4 +62,16 @@ variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
   default     = {}
+}
+
+variable "enable_quicksight" {
+  description = "Whether to enable QuickSight dashboard resources"
+  type        = bool
+  default     = false
+}
+
+variable "quicksight_principal_arn" {
+  description = "ARN of the QuickSight principal (user or group) for permissions"
+  type        = string
+  default     = ""
 }
