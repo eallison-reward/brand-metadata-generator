@@ -12,13 +12,13 @@ terraform {
 
 # Agent execution role
 resource "aws_iam_role" "agent_execution_role" {
-  name               = "${var.project_name}-agent-execution-${var.environment}"
+  name               = "brand_metagen_agent_execution_${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.agent_assume_role.json
 
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.project_name}-agent-execution-${var.environment}"
+      Name = "brand_metagen_agent_execution_${var.environment}"
     }
   )
 }
@@ -37,7 +37,7 @@ data "aws_iam_policy_document" "agent_assume_role" {
 
 # Agent execution policy
 resource "aws_iam_role_policy" "agent_execution_policy" {
-  name   = "${var.project_name}-agent-policy-${var.environment}"
+  name   = "brand_metagen_agent_policy_${var.environment}"
   role   = aws_iam_role.agent_execution_role.id
   policy = data.aws_iam_policy_document.agent_permissions.json
 }
@@ -66,7 +66,7 @@ data "aws_iam_policy_document" "agent_permissions" {
       "dynamodb:Scan"
     ]
     resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-agent-memory-*"
+      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/brand_metagen_agent_memory_*"
     ]
   }
 
@@ -125,7 +125,7 @@ data "aws_iam_policy_document" "agent_permissions" {
       "logs:PutLogEvents"
     ]
     resources = [
-      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/bedrock/agentcore/*"
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/bedrock/agentcore/brand_metagen_*"
     ]
   }
 }

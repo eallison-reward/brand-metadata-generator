@@ -1558,7 +1558,7 @@ resource "aws_bedrock_agent" "orchestrator" {
 ```hcl
 # modules/step_functions/main.tf
 resource "aws_sfn_state_machine" "metadata_workflow" {
-  name     = "brand-metadata-generator-workflow"
+  name     = "brand_metagen_workflow_${var.environment}"
   role_arn = aws_iam_role.step_functions.arn
   
   definition = templatefile("${path.module}/workflow.json", {
@@ -1634,7 +1634,7 @@ resource "aws_glue_catalog_table" "brand" {
 ```hcl
 # shared/iam.tf
 resource "aws_iam_role" "agent_execution" {
-  name = "brand-metadata-agent-execution-role"
+  name = "brand_metagen_agent_execution_${var.environment}"
   
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -1691,7 +1691,7 @@ resource "aws_iam_role_policy" "agent_permissions" {
           "dynamodb:Query",
           "dynamodb:UpdateItem"
         ]
-        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/agent-memory-*"
+        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/brand_metagen_agent_memory_*"
       },
       {
         Effect = "Allow"

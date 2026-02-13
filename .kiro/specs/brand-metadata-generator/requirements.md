@@ -187,6 +187,7 @@ The Brand Metadata Generator is a multi-agent system designed to automatically g
 12. THE System SHALL organize Terraform configurations to enable deployment to different AWS environments
 13. WHEN deploying infrastructure, THE System SHALL use Terraform to provision all AWS resources
 14. THE System SHALL maintain Terraform state files to track infrastructure changes
+15. ALL AWS resources (Lambda functions, Step Functions, DynamoDB tables, IAM roles, CloudWatch resources) SHALL use the naming prefix "brand_metagen_" EXCEPT Athena database tables which use their defined names
 
 ### Requirement 12: User Interface and Monitoring
 

@@ -1,0 +1,154 @@
+{
+  "Comment": "Brand Metadata Generator Workflow - Orchestrates multi-agent system for brand classification",
+  "StartAt": "InitializeWorkflow",
+  "States": {
+    "InitializeWorkflow": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${aws_region}:${account_id}:function:brand_metagen_workflow_init_${environment}",
+      "Comment": "Initialize workflow configuration and validate inputs",
+      "TimeoutSeconds": 60,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "States.Timeout"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "ResultPath": "$.workflow_config",
+      "Next": "InvokeOrchestrator"
+    },
+
+    "InvokeOrchestrator": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${aws_region}:${account_id}:function:brand_metagen_orchestrator_invoke_${environment}",
+      "Comment": "Invoke Orchestrator Agent to coordinate all workflow phases",
+      "TimeoutSeconds": 3600,
+      "HeartbeatSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.Timeout"],
+          "ResultPath": "$.error",
+          "Next": "HandleTimeout"
+        },
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "ResultPath": "$.orchestrator_result",
+      "Next": "CheckOrchestratorStatus"
+    },
+
+    "CheckOrchestratorStatus": {
+      "Type": "Choice",
+      "Comment": "Check if orchestrator completed successfully",
+      "Choices": [
+        {
+          "Variable": "$.orchestrator_result.status",
+          "StringEquals": "completed",
+          "Next": "AggregateResults"
+        },
+        {
+          "Variable": "$.orchestrator_result.status",
+          "StringEquals": "partial_completion",
+          "Next": "HandlePartialCompletion"
+        },
+        {
+          "Variable": "$.orchestrator_result.status",
+          "StringEquals": "requires_human_review",
+          "Next": "NotifyHumanReview"
+        }
+      ],
+      "Default": "WorkflowFailed"
+    },
+
+    "AggregateResults": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:${aws_region}:${account_id}:function:brand_metagen_result_aggregation_${environment}",
+      "Comment": "Aggregate results from all processed brands",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "States.Timeout"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "ResultPath": "$.aggregated_results",
+      "Next": "WorkflowSucceeded"
+    },
+
+    "HandlePartialCompletion": {
+      "Type": "Pass",
+      "Comment": "Handle partial completion - some brands succeeded, some failed",
+      "Parameters": {
+        "status": "partial_completion",
+        "message": "Workflow completed with some failures",
+        "succeeded_brands.$": "$.orchestrator_result.succeeded_brands",
+        "failed_brands.$": "$.orchestrator_result.failed_brands",
+        "summary.$": "$.orchestrator_result.summary"
+      },
+      "Next": "WorkflowSucceeded"
+    },
+
+    "NotifyHumanReview": {
+      "Type": "Pass",
+      "Comment": "Notify that human review is required for some brands",
+      "Parameters": {
+        "status": "requires_human_review",
+        "message": "Workflow completed - human review required",
+        "brands_requiring_review.$": "$.orchestrator_result.brands_requiring_review",
+        "summary.$": "$.orchestrator_result.summary"
+      },
+      "Next": "WorkflowSucceeded"
+    },
+
+    "HandleTimeout": {
+      "Type": "Pass",
+      "Comment": "Handle orchestrator timeout",
+      "Parameters": {
+        "status": "timeout",
+        "message": "Orchestrator execution exceeded timeout limit",
+        "error.$": "$.error"
+      },
+      "Next": "WorkflowFailed"
+    },
+
+    "WorkflowSucceeded": {
+      "Type": "Succeed",
+      "Comment": "Workflow completed successfully"
+    },
+
+    "WorkflowFailed": {
+      "Type": "Fail",
+      "Comment": "Workflow failed",
+      "Error": "WorkflowExecutionFailed",
+      "Cause": "The workflow encountered an unrecoverable error"
+    }
+  }
+}

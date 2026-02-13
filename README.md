@@ -158,7 +158,7 @@ python ../../deploy_agents.py --env prod
 
 ```bash
 aws stepfunctions start-execution \
-  --state-machine-arn arn:aws:states:eu-west-1:ACCOUNT_ID:stateMachine:brand-metadata-generator \
+  --state-machine-arn arn:aws:states:eu-west-1:ACCOUNT_ID:stateMachine:brand_metagen_workflow_dev \
   --input '{"action": "start_workflow", "config": {"max_iterations": 5}}'
 ```
 

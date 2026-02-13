@@ -14,7 +14,7 @@ terraform {
 resource "aws_dynamodb_table" "agent_memory" {
   for_each = toset(var.agent_names)
 
-  name         = "${var.project_name}-agent-memory-${each.value}-${var.environment}"
+  name         = "brand_metagen_agent_memory_${each.value}_${var.environment}"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "session_id"
   range_key    = "timestamp"
@@ -41,7 +41,7 @@ resource "aws_dynamodb_table" "agent_memory" {
   tags = merge(
     var.common_tags,
     {
-      Name  = "${var.project_name}-agent-memory-${each.value}-${var.environment}"
+      Name  = "brand_metagen_agent_memory_${each.value}_${var.environment}"
       Agent = each.value
     }
   )

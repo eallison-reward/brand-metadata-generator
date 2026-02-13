@@ -269,20 +269,20 @@ This implementation plan breaks down the brand-metadata-generator system into di
 - [x] 10. Checkpoint - Ensure all agent tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Step Functions Workflow Definition
-  - [ ] 11.1 Create Step Functions state machine JSON
+- [x] 11. Step Functions Workflow Definition
+  - [x] 11.1 Create Step Functions state machine JSON
     - Define workflow states for each phase
     - Add error handling with retry and catch blocks
     - Configure timeouts and parallel execution where appropriate
     - _Requirements: 9.8_
   
-  - [ ] 11.2 Implement Lambda functions for Step Functions integration
+  - [x] 11.2 Implement Lambda functions for Step Functions integration
     - Create Lambda to invoke Orchestrator Agent
     - Create Lambda for workflow initialization
     - Create Lambda for result aggregation
     - _Requirements: 11.3_
   
-  - [ ] 11.3 Add Step Functions to Terraform
+  - [x] 11.3 Add Step Functions to Terraform
     - Create step_functions module
     - Define state machine resource
     - Configure IAM role for Step Functions

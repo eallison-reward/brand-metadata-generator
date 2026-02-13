@@ -1,0 +1,2 @@
+# Lambda function dependencies for workflow initialization
+boto3>=1.34.0

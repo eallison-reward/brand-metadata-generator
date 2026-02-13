@@ -12,13 +12,13 @@ terraform {
 
 # Step Functions execution role
 resource "aws_iam_role" "step_functions_role" {
-  name               = "${var.project_name}-step-functions-${var.environment}"
+  name               = "brand_metagen_step_functions_${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.step_functions_assume_role.json
 
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.project_name}-step-functions-${var.environment}"
+      Name = "brand_metagen_step_functions_${var.environment}"
     }
   )
 }
@@ -37,7 +37,7 @@ data "aws_iam_policy_document" "step_functions_assume_role" {
 
 # Step Functions execution policy
 resource "aws_iam_role_policy" "step_functions_policy" {
-  name   = "${var.project_name}-step-functions-policy-${var.environment}"
+  name   = "brand_metagen_step_functions_policy_${var.environment}"
   role   = aws_iam_role.step_functions_role.id
   policy = data.aws_iam_policy_document.step_functions_permissions.json
 }
@@ -51,7 +51,7 @@ data "aws_iam_policy_document" "step_functions_permissions" {
       "lambda:InvokeFunction"
     ]
     resources = [
-      "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${var.project_name}-*"
+      "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:brand_metagen_*"
     ]
   }
 
@@ -84,23 +84,15 @@ data "aws_iam_policy_document" "step_functions_permissions" {
 # Get current AWS account ID
 data "aws_caller_identity" "current" {}
 
-# Step Functions state machine (placeholder - will be updated with actual workflow)
+# Step Functions state machine
 resource "aws_sfn_state_machine" "brand_metadata_workflow" {
-  name     = "${var.project_name}-${var.environment}"
+  name     = "brand_metagen_workflow_${var.environment}"
   role_arn = aws_iam_role.step_functions_role.arn
 
-  definition = jsonencode({
-    Comment = "Brand Metadata Generator Workflow"
-    StartAt = "InitializeWorkflow"
-    States = {
-      InitializeWorkflow = {
-        Type = "Pass"
-        Result = {
-          message = "Workflow initialized - to be implemented"
-        }
-        End = true
-      }
-    }
+  definition = templatefile("${path.module}/../../workflows/brand_metadata_workflow.json", {
+    aws_region  = var.aws_region
+    account_id  = data.aws_caller_identity.current.account_id
+    environment = var.environment
   })
 
   logging_configuration {
@@ -114,7 +106,7 @@ resource "aws_sfn_state_machine" "brand_metadata_workflow" {
 
 # CloudWatch log group for Step Functions
 resource "aws_cloudwatch_log_group" "step_functions_logs" {
-  name              = "/aws/vendedlogs/states/${var.project_name}-${var.environment}"
+  name              = "/aws/vendedlogs/states/brand_metagen_workflow_${var.environment}"
   retention_in_days = 30
 
   tags = var.common_tags

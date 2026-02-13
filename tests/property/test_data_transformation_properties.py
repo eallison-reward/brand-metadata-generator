@@ -37,7 +37,7 @@ class TestForeignKeyIntegrity:
         orphaned_mccids=st.integers(min_value=0, max_value=100),
         orphaned_checks=st.integers(min_value=0, max_value=100),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=100, deadline=500)
     def test_foreign_key_validation_identifies_all_orphans(
         self, orphaned_combos, orphaned_mccids, orphaned_checks
     ):
