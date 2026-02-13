@@ -175,11 +175,12 @@ class TestMetadataApplication:
             mock_athena_class.return_value = mock_athena
             
             # Create test combos with various MCCIDs
+            # Note: current_brandid is the key name returned by the query
             test_combos = [
-                {"ccid": 1, "mid": "M1", "narrative": "TEST BRAND 1", "mccid": mccid_filter, "brandid": 100},
-                {"ccid": 2, "mid": "M2", "narrative": "TEST BRAND 2", "mccid": mccid_filter + 1, "brandid": 100},
-                {"ccid": 3, "mid": "M3", "narrative": "TEST BRAND 3", "mccid": mccid_filter, "brandid": 100},
-                {"ccid": 4, "mid": "M4", "narrative": "OTHER BRAND", "mccid": mccid_filter, "brandid": 200},
+                {"ccid": 1, "mid": "M1", "narrative": "TEST BRAND 1", "mccid": mccid_filter, "current_brandid": 100},
+                {"ccid": 2, "mid": "M2", "narrative": "TEST BRAND 2", "mccid": mccid_filter + 1, "current_brandid": 100},
+                {"ccid": 3, "mid": "M3", "narrative": "TEST BRAND 3", "mccid": mccid_filter, "current_brandid": 100},
+                {"ccid": 4, "mid": "M4", "narrative": "OTHER BRAND", "mccid": mccid_filter, "current_brandid": 200},
             ]
             
             mock_athena.execute_query.return_value = test_combos

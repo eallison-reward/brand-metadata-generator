@@ -1,0 +1,4 @@
+# file: C:\Users\eda\OneDrive - SPORTS LOYALTY CARD LTD\Projects\Insight\brand_generator\agents\data_transformation\tools.py
+# hypothesis_version: 6.148.7
+
+['*', 'brand_to_check', 'brandid', 'brandname', 'bucket', 'ccid', 'column', 'combo', 'combo_count', 'combos', 'count', 'current_brandid', 'error', 'eu-west-1', 'found', 'invalid_mccids', 'issue', 'issues', 'matched_brandid', 'matched_combos', 'mccid', 'mccid_list', 'metadata', 'mid', 'narrative', 'pattern', 'regex_pattern', 'results', 'row_count', 's3_key', 'sector', 'success', 'table', 'total_matched', 'total_provided', 'unique_mccids', 'unique_narratives', 'valid']

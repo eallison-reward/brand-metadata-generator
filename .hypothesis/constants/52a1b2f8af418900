@@ -1,0 +1,4 @@
+# file: C:\Users\eda\OneDrive - SPORTS LOYALTY CARD LTD\Projects\Insight\brand_generator\agents\tiebreaker\tools.py
+# hypothesis_version: 6.148.7
+
+[0.0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.8, 1.0, 50.0, '. ', 'Unknown', '\\b', '\\w+', 'alignment_score', 'alignments', 'all_scores', 'assigned_brandid', 'best_match', 'best_score', 'best_similarity', 'brand_name', 'brandid', 'brandname', 'ccid', 'confidence', 'error', 'in_mccid_list', 'manual_review', 'mccid', 'mccid_score', 'mccids', 'metadata', 'narrative', 'narrative_score', 'position_score', 'reasoning', 'regex', 'resolution_type', 'score', 'sector', 'sequence_score', 'similarities', 'similarity', 'single_brand', 'specificity_score', 'substring_match', 'word_match', 'word_overlap']

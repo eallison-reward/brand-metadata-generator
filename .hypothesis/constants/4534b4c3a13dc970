@@ -1,0 +1,4 @@
+# file: C:\Users\eda\OneDrive - SPORTS LOYALTY CARD LTD\Projects\Insight\brand_generator\agents\metadata_production\__init__.py
+# hypothesis_version: 6.148.7
+
+['apply_disambiguation', 'filter_wallet_text', 'generate_mccid_list', 'generate_regex']

@@ -1,0 +1,4 @@
+# file: C:\Users\eda\OneDrive - SPORTS LOYALTY CARD LTD\Projects\Insight\brand_generator\agents\metadata_production\tools.py
+# hypothesis_version: 6.148.7
+
+[0.0, 0.3, 6012, 7299, 7399, '(?!', ')', 'Empty regex pattern', '\\b', '\\b([A-Z][A-Z0-9]*)\\b', '\\bPAYPAL\\s*\\*?\\s*', '\\bPP\\s*\\*\\s*', '\\bSQUARE\\s+', '\\bSQ\\s*\\*\\s*', '\\b[A-Z][A-Z0-9]*\\b', '^', 'add_word_boundary', 'error', 'exclude_patterns', 'make_more_specific', 'match_count', 'narratives_matched', 'required_suffix', 'strategy', 'total_count', 'valid', '|']

@@ -311,8 +311,8 @@ graph LR
         "brandname": "Starbucks",
         "sector": "Food & Beverage",
         "combos": [
-            {"narrative": "STARBUCKS #1234", "mccid": 5812},
-            {"narrative": "SQ *STARBUCKS", "mccid": 7399}
+            {"ccid": 1001, "bankid": 1, "narrative": "STARBUCKS #1234", "mccid": 5812},
+            {"ccid": 1002, "bankid": 1, "narrative": "SQ *STARBUCKS", "mccid": 7399}
         ]
     }
 }
@@ -325,12 +325,12 @@ graph LR
         {
             "type": "payment_wallet",
             "description": "Square wallet detected in 30% of narratives",
-            "affected_combos": [2, 5, 8]
+            "affected_combos": [(1002, 1)]
         },
         {
             "type": "mccid_mismatch",
             "description": "MCCID 7399 inconsistent with Food & Beverage sector",
-            "affected_combos": [2]
+            "affected_combos": [(1002, 1)]
         }
     ],
     "wallet_affected": true,
@@ -468,9 +468,9 @@ graph LR
 
 **Tools**:
 - `review_matched_combos(brandid: int, matched_combos: list, metadata: dict) -> dict`: Evaluate combo matches
-- `confirm_combo(ccid: int, brandid: int) -> dict`: Confirm combo belongs to brand
-- `exclude_combo(ccid: int, brandid: int, reason: str) -> dict`: Exclude combo from brand
-- `flag_for_human_review(ccid: int, brandid: int, reason: str) -> dict`: Escalate ambiguous combo
+- `confirm_combo(ccid: int, bankid: int, brandid: int) -> dict`: Confirm combo belongs to brand
+- `exclude_combo(ccid: int, bankid: int, brandid: int, reason: str) -> dict`: Exclude combo from brand
+- `flag_for_human_review(ccid: int, bankid: int, brandid: int, reason: str) -> dict`: Escalate ambiguous combo
 
 **Interface**:
 ```python
@@ -484,19 +484,20 @@ graph LR
         "mccids": [5732, 5734]
     },
     "matched_combos": [
-        {"ccid": 1001, "narrative": "APPLE STORE #123", "mccid": 5732},
-        {"ccid": 1002, "narrative": "APPLE ORCHARD FARM", "mccid": 5499},
-        {"ccid": 1003, "narrative": "APPLE INC ONLINE", "mccid": 5734}
+        {"ccid": 1001, "bankid": 1, "narrative": "APPLE STORE #123", "mccid": 5732},
+        {"ccid": 1002, "bankid": 1, "narrative": "APPLE ORCHARD FARM", "mccid": 5499},
+        {"ccid": 1003, "bankid": 2, "narrative": "APPLE INC ONLINE", "mccid": 5734}
     ]
 }
 
 # Output
 {
     "brandid": 123,
-    "confirmed_combos": [1001, 1003],
+    "confirmed_combos": [(1001, 1), (1003, 2)],
     "excluded_combos": [
         {
             "ccid": 1002,
+            "bankid": 1,
             "reason": "MCCID 5499 (Misc Food Stores) inconsistent with Apple Inc. Likely apple orchard."
         }
     ],
@@ -518,10 +519,10 @@ graph LR
 - Flag combos that cannot be resolved with high confidence for human review
 
 **Tools**:
-- `resolve_multi_match(ccid: int, matching_brands: list, combo_data: dict) -> dict`: Determine correct brand
+- `resolve_multi_match(ccid: int, bankid: int, matching_brands: list, combo_data: dict) -> dict`: Determine correct brand
 - `analyze_narrative_similarity(narrative: str, brand_names: list) -> dict`: Compare narrative to brand names
 - `compare_mccid_alignment(mccid: int, brands: list) -> dict`: Check MCCID fit for each brand
-- `calculate_match_confidence(ccid: int, brandid: int) -> float`: Compute confidence score
+- `calculate_match_confidence(ccid: int, bankid: int, brandid: int) -> float`: Compute confidence score
 
 **Interface**:
 ```python
@@ -529,6 +530,7 @@ graph LR
 {
     "action": "resolve_tie",
     "ccid": 5001,
+    "bankid": 1,
     "combo": {
         "narrative": "SHELL STATION 123",
         "mccid": 5541,
@@ -559,6 +561,7 @@ graph LR
 # Output: Resolved to Single Brand
 {
     "ccid": 5001,
+    "bankid": 1,
     "resolution_type": "single_brand",
     "assigned_brandid": 200,
     "confidence": 0.92,
@@ -568,6 +571,7 @@ graph LR
 # Output: Cannot Resolve
 {
     "ccid": 5001,
+    "bankid": 1,
     "resolution_type": "manual_review",
     "confidence": 0.45,
     "reasoning": "Both brands equally likely. Requires human judgment.",
@@ -778,13 +782,16 @@ graph LR
 **Combo Table**:
 ```python
 {
-    "ccid": int,           # Primary key
+    "ccid": int,           # Primary key (composite with bankid)
+    "bankid": int,         # Primary key (composite with ccid) - tinyint, identifies the bank
     "mid": str,            # Merchant ID
     "brandid": int,        # Foreign key to brand table
     "mccid": int,          # Foreign key to mcc table
     "narrative": str       # Transaction description text
 }
 ```
+
+**Note**: The combo table uses a composite primary key of (ccid, bankid), meaning the same ccid can exist across different banks.
 
 **MCC Table**:
 ```python
@@ -816,17 +823,19 @@ graph LR
         }
     },
     "matched_combos": {
-        "confirmed": list[int],            # ccids confirmed to belong to this brand
+        "confirmed": list[tuple[int, int]],  # (ccid, bankid) tuples confirmed to belong to this brand
         "excluded": list[{
             "ccid": int,
+            "bankid": int,
             "reason": str                  # Why combo was excluded
         }],
         "ties_resolved": list[{
             "ccid": int,
+            "bankid": int,
             "other_brands": list[int],     # Other brands that also matched
             "resolution": str              # How tie was resolved
         }],
-        "requires_human_review": list[int] # ccids needing manual review
+        "requires_human_review": list[tuple[int, int]]  # (ccid, bankid) tuples needing manual review
     },
     "statistics": {
         "total_matched": int,              # Total combos that matched metadata
@@ -857,16 +866,18 @@ graph LR
         }
     },
     "matched_combos": {
-        "confirmed": [1001, 1002, 1005, 1008, 1012],
+        "confirmed": [[1001, 1], [1002, 1], [1005, 2], [1008, 1], [1012, 2]],
         "excluded": [
             {
                 "ccid": 1003,
+                "bankid": 1,
                 "reason": "Narrative 'STARBURST CANDY' matched regex but is unrelated product"
             }
         ],
         "ties_resolved": [
             {
                 "ccid": 1010,
+                "bankid": 1,
                 "other_brands": [456],
                 "resolution": "Assigned to Starbucks based on MCCID 5812 alignment"
             }

@@ -1,0 +1,4 @@
+# file: C:\Users\eda\AppData\Roaming\Python\Python314\site-packages\boto3\s3\inject.py
+# hypothesis_version: 6.148.7
+
+['AccessDenied', 'Buckets', 'Code', 'ContentLength', 'Error', 'Name', 'S3_TRANSFER', 'Size', 'classic', 'copy', 'download_file', 'download_fileobj', 'load', 'read', 'upload_file', 'upload_fileobj', 'write']

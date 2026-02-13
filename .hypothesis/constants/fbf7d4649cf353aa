@@ -1,0 +1,4 @@
+# file: C:\Users\eda\OneDrive - SPORTS LOYALTY CARD LTD\Projects\Insight\brand_generator\shared\storage\athena_client.py
+# hypothesis_version: 6.148.7
+
+[300, '*', 'CANCELLED', 'Data', 'Database', 'FAILED', 'OutputLocation', 'QueryExecution', 'QueryExecutionId', 'ResultSet', 'Rows', 'SUCCEEDED', 'State', 'StateChangeReason', 'Status', 'Unknown error', 'VarCharValue', 'athena', 'count', 'eu-west-1', 'get_query_results']

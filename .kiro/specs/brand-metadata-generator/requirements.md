@@ -46,7 +46,7 @@ The Brand Metadata Generator is a multi-agent system designed to automatically g
 
 1. WHEN the system starts, THE Data_Transformation_Agent SHALL query the brand table from Athena database brand_metadata_generator_db and retrieve all records with brandid, brandname, and sector
 2. WHEN the system starts, THE Data_Transformation_Agent SHALL query the brand_to_check table from Athena database brand_metadata_generator_db and retrieve all brandid values requiring metadata generation
-3. WHEN the system starts, THE Data_Transformation_Agent SHALL query the combo table from Athena database brand_metadata_generator_db and retrieve all records with ccid, mid, brandid, mccid, and narrative
+3. WHEN the system starts, THE Data_Transformation_Agent SHALL query the combo table from Athena database brand_metadata_generator_db and retrieve all records with ccid, bankid, mid, brandid, mccid, and narrative
 4. WHEN the system starts, THE Data_Transformation_Agent SHALL query the mcc table from Athena database brand_metadata_generator_db and retrieve all records with mccid, mcc_desc, and sector
 5. WHEN querying Athena, THE Data_Transformation_Agent SHALL use AWS region eu-west-1 and database brand_metadata_generator_db
 6. WHEN data is retrieved, THE Data_Transformation_Agent SHALL validate that all foreign key relationships between tables are intact
