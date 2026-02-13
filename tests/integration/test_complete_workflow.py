@@ -117,47 +117,46 @@ class TestSimpleBrandWorkflow:
         assert wallet_detection["affected_percentage"] == 0.0
         
         # Step 3: Assess MCCID consistency
+        mcc_table = [
+            {"mccid": 5812, "sector": "Food & Beverage", "mcc_desc": "Eating Places"}
+        ]
         mccid_assessment = evaluator_tools.assess_mccid_consistency(
-            brandid, mccids, "Food & Beverage", []
+            brandid, mccids, "Food & Beverage", mcc_table
         )
         
-        assert mccid_assessment["success"] is True
-        assert mccid_assessment["consistency_score"] == 1.0
+        assert mccid_assessment["consistent"] is True
+        assert mccid_assessment["consistency_percentage"] == 1.0
         
         # Step 4: Calculate confidence score
-        # Use variance_score to derive consistency_score (inverse relationship)
-        narrative_consistency = max(0.0, 1.0 - analysis["variance_score"])
         confidence_score = evaluator_tools.calculate_confidence_score({
-            "narrative_consistency": narrative_consistency,
-            "mccid_consistency": mccid_assessment["consistency_score"],
-            "wallet_percentage": 0.0,
-            "combo_count": 3
+            "narrative_analysis": analysis,
+            "wallet_detection": wallet_detection,
+            "mccid_consistency": mccid_assessment
         })
         
         assert confidence_score >= 0.7
         
         # Step 5: Generate regex pattern
-        regex_result = mp_tools.generate_regex(narratives, [])
+        regex_pattern = mp_tools.generate_regex(brandid, narratives)
         
-        assert regex_result["success"] is True
-        assert regex_result["regex"] is not None
-        assert "STARBUCKS" in regex_result["regex"].upper()
+        assert regex_pattern  # Should have a pattern
+        assert "STARBUCKS" in regex_pattern.upper()
         
         # Step 6: Generate MCCID list
-        mccid_list = mp_tools.generate_mccid_list(mccids, [])
+        mccid_list_result = mp_tools.generate_mccid_list(brandid, mccids)
         
-        assert mccid_list["success"] is True
-        assert 5812 in mccid_list["mccid_list"]
-        assert len(mccid_list["mccid_list"]) == 1
+        assert isinstance(mccid_list_result, list)
+        assert 5812 in mccid_list_result
+        assert len(mccid_list_result) == 1
         
         # Step 7: Validate pattern coverage
         coverage = mp_tools.validate_pattern_coverage(
-            regex_result["regex"],
+            regex_pattern,
             narratives
         )
         
-        assert coverage["success"] is True
-        assert coverage["coverage_percentage"] >= 80.0
+        assert coverage["valid"] is True
+        assert coverage["narratives_matched"] >= 0.8
 
 
 class TestWalletBrandWorkflow:
@@ -184,32 +183,26 @@ class TestWalletBrandWorkflow:
         assert len(wallet_detection["affected_indices"]) == 2
         
         # Step 2: Filter wallet text
-        filtered_narratives = mp_tools.filter_wallet_text(narratives)
+        wallet_indicators = wallet_detection.get("wallet_types", [])
+        filtered_narratives = mp_tools.filter_wallet_text(narratives, wallet_indicators)
         
-        assert filtered_narratives["success"] is True
-        for narrative in filtered_narratives["filtered_narratives"]:
+        for narrative in filtered_narratives:
             assert "PAYPAL" not in narrative.upper()
             assert "SQ *" not in narrative.upper()
         
         # Step 3: Generate regex without wallet text
-        regex_result = mp_tools.generate_regex(
-            filtered_narratives["filtered_narratives"],
-            wallet_detection["affected_indices"]
-        )
+        regex_pattern = mp_tools.generate_regex(brandid, filtered_narratives)
         
-        assert regex_result["success"] is True
-        assert "SHELL" in regex_result["regex"].upper()
+        assert regex_pattern  # Should have a pattern
+        assert "SHELL" in regex_pattern.upper()
         
         # Step 4: Filter wallet MCCIDs
-        mccid_list = mp_tools.generate_mccid_list(
-            mccids,
-            wallet_detection["affected_indices"]
-        )
+        mccid_list = mp_tools.generate_mccid_list(brandid, mccids)
         
-        assert mccid_list["success"] is True
-        assert 5541 in mccid_list["mccid_list"]  # Fuel station MCCID kept
-        assert 7399 not in mccid_list["mccid_list"]  # Wallet MCCID filtered
-        assert 7299 not in mccid_list["mccid_list"]  # Wallet MCCID filtered
+        assert isinstance(mccid_list, list)
+        assert 5541 in mccid_list  # Fuel station MCCID kept
+        assert 7399 not in mccid_list  # Wallet MCCID filtered
+        assert 7299 not in mccid_list  # Wallet MCCID filtered
 
 
 class TestDataTransformationWorkflow:

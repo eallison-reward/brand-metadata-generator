@@ -112,18 +112,21 @@ class TestTieResolutionWorkflow:
         4. Winner is correctly identified
         """
         # Resolve the tie
+        combo_data = {
+            "narrative": clear_winner_scenario["narrative"],
+            "mccid": clear_winner_scenario["mccid"]
+        }
+        
         result = tiebreaker_tools.resolve_multi_match(
             ccid=clear_winner_scenario["ccid"],
             matching_brands=clear_winner_scenario["matching_brands"],
-            narrative=clear_winner_scenario["narrative"],
-            mccid=clear_winner_scenario["mccid"]
+            combo_data=combo_data
         )
         
-        assert result["success"] is True
-        assert result["resolution_type"] in ["assigned", "human_review"]
+        assert result["resolution_type"] in ["single_brand", "manual_review"]
         
         # If assigned, verify it's the correct brand (Starbucks, not Star Bucks Diner)
-        if result["resolution_type"] == "assigned":
+        if result["resolution_type"] == "single_brand":
             assert result["assigned_brandid"] == 500  # Starbucks
             assert result["confidence"] >= 0.7
             assert "reasoning" in result
@@ -192,7 +195,7 @@ class TestTieResolutionWorkflow:
             if s["brand_name"] == "Seashell Restaurant"
         )
         
-        assert shell_similarity["score"] > seashell_similarity["score"]
+        assert shell_similarity["similarity"] > seashell_similarity["similarity"]
 
     def test_ambiguous_tie_flags_for_human_review(self, ambiguous_tie_scenario):
         """Test that ambiguous ties are flagged for human review.
@@ -203,20 +206,23 @@ class TestTieResolutionWorkflow:
         3. Reasoning is provided for the ambiguity
         """
         # Resolve the ambiguous tie
+        combo_data = {
+            "narrative": ambiguous_tie_scenario["narrative"],
+            "mccid": ambiguous_tie_scenario["mccid"]
+        }
+        
         result = tiebreaker_tools.resolve_multi_match(
             ccid=ambiguous_tie_scenario["ccid"],
             matching_brands=ambiguous_tie_scenario["matching_brands"],
-            narrative=ambiguous_tie_scenario["narrative"],
-            mccid=ambiguous_tie_scenario["mccid"]
+            combo_data=combo_data
         )
         
-        assert result["success"] is True
-        
         # Should either assign with low confidence or flag for human review
-        if result["resolution_type"] == "human_review":
-            assert "reason" in result
-            assert len(result["candidate_brands"]) >= 2
-        elif result["resolution_type"] == "assigned":
+        if result["resolution_type"] == "manual_review":
+            assert result["requires_human_review"] is True
+            assert "reasoning" in result
+            assert "all_scores" in result
+        elif result["resolution_type"] == "single_brand":
             # If assigned, confidence should be documented
             assert "confidence" in result
 
@@ -230,7 +236,6 @@ class TestTieResolutionWorkflow:
         """
         ccid = clear_winner_scenario["ccid"]
         narrative = clear_winner_scenario["narrative"]
-        mccid = clear_winner_scenario["mccid"]
         
         # Calculate confidence for the best match (Starbucks)
         best_brand = clear_winner_scenario["matching_brands"][0]
@@ -239,14 +244,11 @@ class TestTieResolutionWorkflow:
             ccid=ccid,
             brandid=best_brand["brandid"],
             narrative=narrative,
-            brand_name=best_brand["brandname"],
-            mccid=mccid,
-            brand_mccids=best_brand["mccid_list"]
+            brand_data=best_brand
         )
         
-        assert "confidence" in confidence
-        assert 0.0 <= confidence["confidence"] <= 1.0
-        assert "factors" in confidence
+        assert isinstance(confidence, float)
+        assert 0.0 <= confidence <= 1.0
 
 
 class TestTieDetectionWorkflow:
@@ -308,18 +310,27 @@ class TestTieResolutionErrorHandling:
 
     def test_no_matching_brands(self):
         """Test handling when no brands are provided for tie resolution."""
+        combo_data = {
+            "narrative": "TEST NARRATIVE",
+            "mccid": 5812
+        }
+        
         result = tiebreaker_tools.resolve_multi_match(
             ccid=999,
             matching_brands=[],
-            narrative="TEST NARRATIVE",
-            mccid=5812
+            combo_data=combo_data
         )
         
-        assert result["success"] is False
-        assert "error" in result or result["resolution_type"] == "no_match"
+        assert result["resolution_type"] == "error"
+        assert result["requires_human_review"] is True
 
     def test_single_brand_no_tie(self):
         """Test handling when only one brand matches (not actually a tie)."""
+        combo_data = {
+            "narrative": "TEST BRAND STORE",
+            "mccid": 5812
+        }
+        
         result = tiebreaker_tools.resolve_multi_match(
             ccid=999,
             matching_brands=[
@@ -327,18 +338,19 @@ class TestTieResolutionErrorHandling:
                     "brandid": 100,
                     "brandname": "Test Brand",
                     "sector": "Test",
-                    "regex": "^TEST",
-                    "mccid_list": [5812]
+                    "metadata": {
+                        "regex": "^TEST",
+                        "mccids": [5812]
+                    }
                 }
             ],
-            narrative="TEST BRAND STORE",
-            mccid=5812
+            combo_data=combo_data
         )
         
-        # With only one brand, should either auto-assign or indicate no tie
-        assert result["success"] is True
-        if result["resolution_type"] == "assigned":
-            assert result["assigned_brandid"] == 100
+        # With only one brand, should auto-assign
+        assert result["resolution_type"] == "single_brand"
+        assert result["assigned_brandid"] == 100
+        assert result["confidence"] == 1.0
 
 
 class TestTieResolutionIntegrationWithEvaluator:
@@ -363,33 +375,41 @@ class TestTieResolutionIntegrationWithEvaluator:
                     "brandid": 200,
                     "brandname": "Shell",
                     "sector": "Fuel",
-                    "regex": "^SHELL",
-                    "mccid_list": [5541, 5542]
+                    "metadata": {
+                        "regex": "^SHELL",
+                        "mccids": [5541, 5542]
+                    }
                 },
                 {
                     "brandid": 300,
                     "brandname": "Shell Fuel",
                     "sector": "Fuel",
-                    "regex": "SHELL.*FUEL",
-                    "mccid_list": [5541]
+                    "metadata": {
+                        "regex": "SHELL.*FUEL",
+                        "mccids": [5541]
+                    }
                 }
             ]
         }
         
         # Invoke tiebreaker
+        combo_data = {
+            "narrative": tie_data["narrative"],
+            "mccid": tie_data["mccid"]
+        }
+        
         resolution = tiebreaker_tools.resolve_multi_match(
             ccid=tie_data["ccid"],
             matching_brands=tie_data["matching_brands"],
-            narrative=tie_data["narrative"],
-            mccid=tie_data["mccid"]
+            combo_data=combo_data
         )
         
-        assert resolution["success"] is True
-        assert resolution["resolution_type"] in ["assigned", "human_review"]
+        assert resolution["resolution_type"] in ["single_brand", "manual_review"]
         
         # Verify resolution contains necessary information
-        if resolution["resolution_type"] == "assigned":
+        if resolution["resolution_type"] == "single_brand":
             assert "assigned_brandid" in resolution
             assert resolution["assigned_brandid"] in [200, 300]
         else:
-            assert "candidate_brands" in resolution
+            assert "all_scores" in resolution
+            assert resolution["requires_human_review"] is True
