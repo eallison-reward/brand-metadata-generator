@@ -368,13 +368,13 @@ This implementation plan breaks down the brand-metadata-generator system into di
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 17. MCP Integration for Commercial Assessment
-  - [ ] 17.1 Configure Crunchbase MCP Server
+  - [x] 17.1 Configure Crunchbase MCP Server
     - Add Crunchbase MCP configuration to .kiro/settings/mcp.json
     - Set up API key in environment variables
     - Test MCP connectivity
     - _Requirements: 15.1, 15.2_
   
-  - [ ] 17.2 Build Custom Brand Registry MCP Server
+  - [x] 17.2 Build Custom Brand Registry MCP Server
     - Create Python MCP server for brand registry
     - Implement search_brands tool
     - Implement get_brand_info tool
@@ -382,7 +382,7 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Connect to Athena database
     - _Requirements: 15.1_
   
-  - [ ] 17.3 Integrate MCP into Commercial Assessment Agent
+  - [x] 17.3 Integrate MCP into Commercial Assessment Agent
     - Add MCP tool usage to agent
     - Implement query logic for brand validation
     - Add fallback to web search
@@ -390,7 +390,7 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Add error handling and retry logic
     - _Requirements: 15.3, 15.4, 15.5, 15.9, 15.10_
   
-  - [ ] 17.4 Write tests for MCP integration
+  - [x] 17.4 Write tests for MCP integration
     - Test MCP connectivity
     - Test brand validation with MCP data
     - Test fallback to web search

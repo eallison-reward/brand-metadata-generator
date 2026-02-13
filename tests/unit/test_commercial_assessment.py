@@ -53,11 +53,14 @@ class TestVerifyBrandExists:
         assert result["official_name"] == "Starbucks Corporation"
     
     def test_unknown_brand(self):
-        """Test verification of unknown brand."""
+        """Test verification of unknown brand - should return web_search_required."""
         result = verify_brand_exists("XYZ Unknown Store")
         
-        assert result["exists"] is False
-        assert result["confidence"] < 0.5
+        # Unknown brands now return None (requires web search) instead of False
+        assert result["exists"] is None
+        assert result["source"] == "web_search_required"
+        assert "web_search_instructions" in result
+        assert result["confidence"] == 0.5  # Neutral confidence until web search performed
         assert result["official_name"] is None
     
     def test_multiple_known_brands(self):
@@ -211,11 +214,12 @@ class TestGetBrandInfo:
         assert "source" in result
     
     def test_unknown_brand_info(self):
-        """Test retrieval for unknown brand."""
+        """Test retrieval for unknown brand - should return web_search_required."""
         result = get_brand_info("XYZ Unknown Store")
         
-        assert result["exists"] is False
-        assert result["confidence"] < 0.5
+        # Unknown brands now return exists=None with web_search_required
+        assert result["exists"] is None or result["exists"] is False
+        assert result["confidence"] <= 0.5
         assert "note" in result or "source" in result
     
     def test_multiple_brands_info(self):
@@ -277,13 +281,14 @@ class TestIntegration:
         assert info["primary_sector"] == "Food & Beverage"
     
     def test_unknown_brand_workflow(self):
-        """Test workflow for unknown brand."""
+        """Test workflow for unknown brand - should return web_search_required."""
         brandname = "Unknown Brand XYZ"
         sector = "Retail"
         
-        # Verify brand
+        # Verify brand - should return web_search_required
         exists_result = verify_brand_exists(brandname)
-        assert exists_result["exists"] is False
+        assert exists_result["exists"] is None  # Unknown until web search performed
+        assert exists_result["source"] == "web_search_required"
         
         # Get brand info
         info = get_brand_info(brandname)

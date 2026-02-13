@@ -1,0 +1,58 @@
+{
+  "mcpServers": {
+    "crunchbase": {
+      "command": "uvx",
+      "args": ["mcp-server-crunchbase"],
+      "env": {
+        "CRUNCHBASE_API_KEY": "${CRUNCHBASE_API_KEY}"
+      },
+      "disabled": true,
+      "autoApprove": [
+        "search_organizations",
+        "get_organization",
+        "search_people"
+      ],
+      "note": "Crunchbase API is a paid service. Disabled to avoid costs. The system works fine without it using Brand Registry MCP and internal database."
+    },
+    "brand-registry": {
+      "command": "python",
+      "args": ["-m", "mcp_servers.brand_registry.server"],
+      "env": {
+        "AWS_REGION": "eu-west-1",
+        "AWS_ACCESS_KEY_ID": "${AWS_ACCESS_KEY_ID}",
+        "AWS_SECRET_ACCESS_KEY": "${AWS_SECRET_ACCESS_KEY}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "search_brands",
+        "get_brand_info",
+        "validate_sector"
+      ]
+    },
+    "wikipedia": {
+      "command": "uvx",
+      "args": ["mcp-server-wikipedia"],
+      "env": {},
+      "disabled": true,
+      "autoApprove": [
+        "search",
+        "get_page",
+        "get_summary"
+      ],
+      "note": "Wikipedia MCP server package does not exist in standard registries. Disabled. The system works fine with just Brand Registry MCP."
+    },
+    "brave-search": {
+      "command": "uvx",
+      "args": ["mcp-server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      },
+      "disabled": true,
+      "autoApprove": [
+        "brave_web_search",
+        "brave_local_search"
+      ],
+      "note": "Brave Search API is NOT free ($5/1000 requests). Disabled to avoid costs. The system works fine with Wikipedia MCP and Brand Registry MCP."
+    }
+  }
+}
