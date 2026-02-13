@@ -12,7 +12,7 @@ setup(
     python_requires=">=3.12",
     install_requires=[
         "boto3>=1.34.0",
-        "strands-agents>=0.1.0",
+        "strands-agents",
         "pandas>=2.0.0",
         "pydantic>=2.0.0",
     ],

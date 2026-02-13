@@ -9,9 +9,9 @@ GitHub CI was failing on two jobs:
 ## Root Causes
 
 ### 1. Test Failure
-- **Cause**: CI workflow wasn't installing project dependencies from `requirements.txt`
-- **Impact**: Tests couldn't import required modules (boto3, strands, etc.)
-- **Additional Issue**: CI was using `-m unit` marker but tests weren't marked
+- **Root Cause**: CI workflow wasn't installing the project package, so Python couldn't find the `agents` and `shared` modules
+- **Impact**: Tests couldn't import required modules (ModuleNotFoundError: No module named 'agents')
+- **Secondary Issue**: CI was using `-m unit` marker but tests weren't marked
 
 ### 2. Terraform Validation Failure
 - **Cause 1**: Lambda module Terraform files weren't formatted
@@ -19,7 +19,7 @@ GitHub CI was failing on two jobs:
 
 ## Fixes Applied
 
-### Fix 1: Update CI Workflow Dependencies
+### Fix 1: Install Project as Package
 **File**: `.github/workflows/ci.yml`
 
 Changed:
@@ -35,9 +35,11 @@ To:
 - name: Install dependencies
   run: |
     python -m pip install --upgrade pip
-    pip install -r requirements.txt
+    pip install -e .
     pip install pytest pytest-cov hypothesis black flake8 mypy
 ```
+
+**Reason**: Installing the project with `pip install -e .` makes the `agents` and `shared` modules available to Python by adding the project to the Python path. This is the standard way to make a project's modules importable during development and testing.
 
 ### Fix 2: Remove Unit Test Marker
 **File**: `.github/workflows/ci.yml`
@@ -92,9 +94,9 @@ python -m pytest tests/ --tb=short
 ```
 
 ### Fix 5: Update strands-agents Dependency
-**File**: `requirements.txt`
+**Files**: `requirements.txt`, `setup.py`
 
-Changed:
+Changed in both files:
 ```
 strands-agents>=0.1.0
 ```
