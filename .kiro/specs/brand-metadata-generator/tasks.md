@@ -288,20 +288,20 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Configure IAM role for Step Functions
     - _Requirements: 11.4_
 
-- [ ] 12. Agent Deployment
-  - [ ] 12.1 Create AgentCore deployment scripts
+- [x] 12. Agent Deployment
+  - [x] 12.1 Create AgentCore deployment scripts
     - Write Python script to deploy each agent using agentcore CLI
     - Configure agent names, models, timeouts, memory
     - Set up agent memory with DynamoDB
     - _Requirements: 11.1_
   
-  - [ ] 12.2 Create agent instruction prompts
+  - [x] 12.2 Create agent instruction prompts
     - Write detailed instructions for each agent
     - Include tool usage guidelines
     - Define agent personalities and behaviors
     - _Requirements: 11.1_
   
-  - [ ] 12.3 Deploy agents to dev environment
+  - [x] 12.3 Deploy agents to dev environment
     - Run deployment scripts for all 7 agents
     - Verify agent creation in AWS Bedrock
     - Test agent invocation
