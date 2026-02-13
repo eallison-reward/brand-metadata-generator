@@ -217,12 +217,12 @@ class TestDataPreparation:
 
     def test_apply_metadata_to_combos(self, tools, mock_athena):
         """Test applying metadata to combos."""
-        mock_instance = mock_athena.return_value
-        mock_instance.execute_query.return_value = [
-            {"ccid": 1, "mid": "MID1", "narrative": "STARBUCKS #123", "mccid": 5812, "brandid": 100},
-            {"ccid": 2, "mid": "MID2", "narrative": "SHELL STATION", "mccid": 5541, "brandid": 200},
-            {"ccid": 3, "mid": "MID3", "narrative": "STARBUCKS COFFEE", "mccid": 5812, "brandid": 100},
-        ]
+        # Mock the athena client's execute_query method
+        tools.athena.execute_query = MagicMock(return_value=[
+            {"ccid": 1, "mid": "MID1", "narrative": "STARBUCKS #123", "mccid": 5812, "current_brandid": 100},
+            {"ccid": 2, "mid": "MID2", "narrative": "SHELL STATION", "mccid": 5541, "current_brandid": 200},
+            {"ccid": 3, "mid": "MID3", "narrative": "STARBUCKS COFFEE", "mccid": 5812, "current_brandid": 100},
+        ])
         
         result = tools.apply_metadata_to_combos(123, "^STARBUCKS", [5812])
         

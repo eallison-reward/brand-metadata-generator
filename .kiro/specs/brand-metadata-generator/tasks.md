@@ -135,38 +135,38 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Test alternative sector suggestions
     - _Requirements: 5.3, 5.4_
 
-- [ ] 6. Metadata Production Agent
-  - [ ] 6.1 Implement regex generation tool
+- [x] 6. Metadata Production Agent
+  - [x] 6.1 Implement regex generation tool
     - Create generate_regex tool
     - Analyze narrative patterns
     - Handle wallet text exclusion
     - Generate regex with appropriate quantifiers and groups
     - _Requirements: 2.1, 3.3_
   
-  - [ ] 6.2 Implement MCCID list generation tool
+  - [x] 6.2 Implement MCCID list generation tool
     - Create generate_mccid_list tool
     - Filter wallet-specific MCCIDs
     - Return deduplicated list
     - _Requirements: 2.2_
   
-  - [ ] 6.3 Implement pattern validation tool
+  - [x] 6.3 Implement pattern validation tool
     - Create validate_pattern_coverage tool
     - Test regex against sample narratives
     - Calculate coverage and false positive rates
     - _Requirements: 2.5_
   
-  - [ ] 6.4 Implement iteration context management
+  - [x] 6.4 Implement iteration context management
     - Maintain context from previous iterations
     - Apply feedback for regeneration
     - Track iteration count
     - _Requirements: 10.4_
   
-  - [ ] 6.5 Write property tests for metadata production agent
+  - [x] 6.5 Write property tests for metadata production agent
     - **Property 2: Metadata Completeness**
     - **Property 5: Wallet Text Exclusion**
     - **Validates: Requirements 2.1, 2.2, 3.3**
   
-  - [ ] 6.6 Write unit tests for metadata production agent
+  - [x] 6.6 Write unit tests for metadata production agent
     - Test regex generation with various narrative patterns
     - Test wallet text filtering
     - Test MCCID list generation
