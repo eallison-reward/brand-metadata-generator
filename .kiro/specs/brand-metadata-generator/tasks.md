@@ -116,20 +116,20 @@ This implementation plan breaks down the brand-metadata-generator system into di
     - Test confidence score edge cases
     - _Requirements: 3.1, 4.1, 4.6_
 
-- [ ] 5. Commercial Assessment Agent
-  - [ ] 5.1 Implement brand validation tools
+- [x] 5. Commercial Assessment Agent
+  - [x] 5.1 Implement brand validation tools
     - Create verify_brand_exists tool
     - Create validate_sector tool
     - Create suggest_alternative_sectors tool
     - _Requirements: 5.3, 5.4_
   
-  - [ ] 5.2 Implement agent handler and integration
+  - [x] 5.2 Implement agent handler and integration
     - Set up Strands Agent with appropriate instructions
     - Register all tools
     - Implement handler function for AgentCore
     - _Requirements: 5.5_
   
-  - [ ] 5.3 Write unit tests for commercial assessment agent
+  - [x] 5.3 Write unit tests for commercial assessment agent
     - Test brand existence validation
     - Test sector validation logic
     - Test alternative sector suggestions
