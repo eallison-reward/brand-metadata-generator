@@ -204,14 +204,16 @@ Access the CloudWatch dashboard for real-time metrics:
 - Navigate to CloudWatch → Dashboards → `brand-metagen-dev`
 - View workflow execution metrics, brand processing status, and agent invocations
 
-#### QuickSight Dashboard
+#### Quick Suite Interface
 
-For business-level monitoring:
-1. Navigate to AWS QuickSight
-2. Open the "Brand Metadata Generator" dashboard
-3. View brand processing status, combo matching statistics, and human review queue
+For agent-specific monitoring and human review:
+1. Navigate to AWS Bedrock Console
+2. Select "AgentCore" → "Quick Suite"
+3. View brand classification results, provide feedback, and approve/reject metadata
 
-See [QuickSight Dashboard Setup Guide](docs/QUICKSIGHT_DASHBOARD_SETUP.md) for detailed instructions.
+**NOTE**: Quick Suite is an AWS Bedrock AgentCore technology for agent interfaces. This is NOT Amazon QuickSight (a BI tool). See [Quick Suite vs QuickSight](docs/QUICK_SUITE_VS_QUICKSIGHT.md) for clarification.
+
+See [Quick Suite Setup Guide](docs/QUICK_SUITE_SETUP.md) for detailed instructions.
 
 #### CloudWatch Logs
 
@@ -286,7 +288,8 @@ aws athena start-query-execution \
 - [Implementation Plan](.kiro/specs/brand-metadata-generator/tasks.md) - Task breakdown and progress tracking
 - [Agent Deployment Guide](docs/AGENT_DEPLOYMENT_GUIDE.md) - Step-by-step agent deployment instructions
 - [Step Functions Workflow](docs/STEP_FUNCTIONS_WORKFLOW.md) - Workflow state machine documentation
-- [QuickSight Dashboard Setup](docs/QUICKSIGHT_DASHBOARD_SETUP.md) - Dashboard configuration guide
+- [Quick Suite Setup](docs/QUICK_SUITE_SETUP.md) - Human review interface configuration guide
+- [Quick Suite vs QuickSight](docs/QUICK_SUITE_VS_QUICKSIGHT.md) - Important technology distinction
 - [Deployment Best Practices](AGENTCORE_DEPLOYMENT_BEST_PRACTICES.md) - AgentCore deployment guidelines
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
 

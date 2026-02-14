@@ -22,7 +22,7 @@ The Brand Metadata Generator is a sophisticated multi-agent system built on AWS 
 - **Data Querying**: AWS Athena (database: brand_metadata_generator_db)
 - **Compute**: AWS Lambda for serverless functions
 - **Data Catalog**: AWS Glue
-- **Monitoring**: AWS Quick_Suite for agent-specific dashboards
+- **Monitoring**: AWS Bedrock Quick_Suite for agent-specific interfaces (NOTE: This is NOT Amazon QuickSight, which is a separate BI tool)
 - **Infrastructure**: Terraform for IaC deployment
 - **Version Control**: GitHub repository
 - **Region**: eu-west-1 (all services)

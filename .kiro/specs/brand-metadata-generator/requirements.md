@@ -24,7 +24,7 @@ The Brand Metadata Generator is a multi-agent system designed to automatically g
 - **AgentCore**: AWS Bedrock runtime environment for agent deployment
 - **Athena**: AWS service for querying data from S3
 - **Athena_Database**: The Athena database named brand_metadata_generator_db containing all source tables
-- **Quick_Suite**: AWS technology for agent-specific user interface and monitoring
+- **Quick_Suite**: AWS Bedrock AgentCore technology for agent-specific user interface and monitoring (NOTE: This is NOT Amazon QuickSight, which is a separate BI tool)
 - **Terraform**: Infrastructure as Code (IaC) tool for managing AWS deployments
 - **GitHub_Repository**: Version control repository for storing all project code, configurations, and documentation
 - **MCP**: Model Context Protocol, an open standard for connecting AI agents to external data sources
@@ -179,7 +179,7 @@ The Brand Metadata Generator is a multi-agent system designed to automatically g
 4. THE System SHALL use AWS Step Functions for workflow orchestration
 5. THE System SHALL use AWS Athena for data querying with database brand_metadata_generator_db
 6. THE System SHALL use AWS S3 for data storage with bucket brand-generator-rwrd-023-eu-west-1
-7. THE System SHALL use AWS Quick_Suite for agent-specific user interface and monitoring
+7. THE System SHALL use AWS Bedrock Quick_Suite for agent-specific user interface and monitoring (NOTE: Quick_Suite is an AWS Bedrock AgentCore technology, NOT Amazon QuickSight which is a separate BI tool)
 8. WHERE AWS services are used, THE System SHALL operate in region eu-west-1
 9. THE System SHALL follow best practices documented in AGENTCORE_DEPLOYMENT_BEST_PRACTICES.md
 10. THE System SHALL implement appropriate IAM roles and policies for least-privilege access
@@ -191,13 +191,15 @@ The Brand Metadata Generator is a multi-agent system designed to automatically g
 
 ### Requirement 12: User Interface and Monitoring
 
-**User Story:** As a system operator, I want to monitor system progress and review results through Quick_Suite, so that I can track metadata generation and intervene when necessary.
+**User Story:** As a system operator, I want to monitor system progress and review results through AWS Bedrock Quick_Suite, so that I can track metadata generation and intervene when necessary.
+
+**NOTE**: Quick_Suite is an AWS Bedrock AgentCore technology for agent-specific interfaces. This is NOT Amazon QuickSight (a separate BI tool).
 
 #### Acceptance Criteria
 
-1. THE System SHALL provide a Quick_Suite dashboard showing the number of brands processed, in progress, and pending
-2. THE System SHALL provide a Quick_Suite dashboard showing brands flagged for agent confirmation
-3. THE System SHALL provide a Quick_Suite dashboard showing identified ties and their resolution status
+1. THE System SHALL provide a Quick_Suite interface showing the number of brands processed, in progress, and pending
+2. THE System SHALL provide a Quick_Suite interface showing brands flagged for agent confirmation
+3. THE System SHALL provide a Quick_Suite interface showing identified ties and their resolution status
 4. WHEN a brand requires human review, THE System SHALL display the brand details and generated metadata in Quick_Suite
 5. THE System SHALL allow operators to approve or reject metadata through the Quick_Suite interface
 6. THE System SHALL log all agent activities and decisions for audit purposes
