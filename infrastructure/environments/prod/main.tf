@@ -91,15 +91,15 @@ module "step_functions" {
 module "monitoring" {
   source = "../../modules/monitoring"
 
-  project_name                  = var.project_name
-  environment                   = var.environment
-  aws_region                    = var.aws_region
-  agent_names                   = var.agent_names
-  state_machine_arn             = module.step_functions.state_machine_arn
-  create_sns_topic              = true # Enabled for prod
-  s3_bucket_name                = module.storage.s3_bucket_name
-  athena_database               = module.storage.athena_database_name
-  dynamodb_table_name           = "brand-metagen-workflow-state-${var.environment}"
-  feedback_processing_agent_id  = ""  # Will be populated after agent deployment
-  common_tags                   = local.common_tags
+  project_name                 = var.project_name
+  environment                  = var.environment
+  aws_region                   = var.aws_region
+  agent_names                  = var.agent_names
+  state_machine_arn            = module.step_functions.state_machine_arn
+  create_sns_topic             = true # Enabled for prod
+  s3_bucket_name               = module.storage.s3_bucket_name
+  athena_database              = module.storage.athena_database_name
+  dynamodb_table_name          = "brand-metagen-workflow-state-${var.environment}"
+  feedback_processing_agent_id = "" # Will be populated after agent deployment
+  common_tags                  = local.common_tags
 }

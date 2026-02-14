@@ -9,18 +9,18 @@
 resource "aws_lambda_function" "feedback_submission" {
   filename         = "${path.module}/../../../lambda_functions/feedback_submission.zip"
   function_name    = "brand-metagen-feedback-submission-${var.environment}"
-  role            = aws_iam_role.quick_suite_lambda_role.arn
-  handler         = "handler.lambda_handler"
+  role             = aws_iam_role.quick_suite_lambda_role.arn
+  handler          = "handler.lambda_handler"
   source_code_hash = filebase64sha256("${path.module}/../../../lambda_functions/feedback_submission.zip")
-  runtime         = "python3.12"
-  timeout         = 60
+  runtime          = "python3.12"
+  timeout          = 60
 
   environment {
     variables = {
-      ENVIRONMENT           = var.environment
-      S3_BUCKET            = var.s3_bucket_name
-      DYNAMODB_TABLE       = var.dynamodb_table_name
-      FEEDBACK_AGENT_ID    = var.feedback_processing_agent_id
+      ENVIRONMENT       = var.environment
+      S3_BUCKET         = var.s3_bucket_name
+      DYNAMODB_TABLE    = var.dynamodb_table_name
+      FEEDBACK_AGENT_ID = var.feedback_processing_agent_id
     }
   }
 
@@ -31,17 +31,17 @@ resource "aws_lambda_function" "feedback_submission" {
 resource "aws_lambda_function" "feedback_retrieval" {
   filename         = "${path.module}/../../../lambda_functions/feedback_retrieval.zip"
   function_name    = "brand-metagen-feedback-retrieval-${var.environment}"
-  role            = aws_iam_role.quick_suite_lambda_role.arn
-  handler         = "handler.lambda_handler"
+  role             = aws_iam_role.quick_suite_lambda_role.arn
+  handler          = "handler.lambda_handler"
   source_code_hash = filebase64sha256("${path.module}/../../../lambda_functions/feedback_retrieval.zip")
-  runtime         = "python3.12"
-  timeout         = 30
+  runtime          = "python3.12"
+  timeout          = 30
 
   environment {
     variables = {
-      ENVIRONMENT      = var.environment
-      S3_BUCKET       = var.s3_bucket_name
-      DYNAMODB_TABLE  = var.dynamodb_table_name
+      ENVIRONMENT    = var.environment
+      S3_BUCKET      = var.s3_bucket_name
+      DYNAMODB_TABLE = var.dynamodb_table_name
     }
   }
 
@@ -52,15 +52,15 @@ resource "aws_lambda_function" "feedback_retrieval" {
 resource "aws_lambda_function" "status_updates" {
   filename         = "${path.module}/../../../lambda_functions/status_updates.zip"
   function_name    = "brand-metagen-status-updates-${var.environment}"
-  role            = aws_iam_role.quick_suite_lambda_role.arn
-  handler         = "handler.lambda_handler"
+  role             = aws_iam_role.quick_suite_lambda_role.arn
+  handler          = "handler.lambda_handler"
   source_code_hash = filebase64sha256("${path.module}/../../../lambda_functions/status_updates.zip")
-  runtime         = "python3.12"
-  timeout         = 30
+  runtime          = "python3.12"
+  timeout          = 30
 
   environment {
     variables = {
-      ENVIRONMENT      = var.environment
+      ENVIRONMENT     = var.environment
       S3_BUCKET       = var.s3_bucket_name
       DYNAMODB_TABLE  = var.dynamodb_table_name
       ATHENA_DATABASE = var.athena_database
@@ -74,15 +74,15 @@ resource "aws_lambda_function" "status_updates" {
 resource "aws_lambda_function" "brand_data_retrieval" {
   filename         = "${path.module}/../../../lambda_functions/brand_data_retrieval.zip"
   function_name    = "brand-metagen-brand-data-${var.environment}"
-  role            = aws_iam_role.quick_suite_lambda_role.arn
-  handler         = "handler.lambda_handler"
+  role             = aws_iam_role.quick_suite_lambda_role.arn
+  handler          = "handler.lambda_handler"
   source_code_hash = filebase64sha256("${path.module}/../../../lambda_functions/brand_data_retrieval.zip")
-  runtime         = "python3.12"
-  timeout         = 30
+  runtime          = "python3.12"
+  timeout          = 30
 
   environment {
     variables = {
-      ENVIRONMENT      = var.environment
+      ENVIRONMENT     = var.environment
       S3_BUCKET       = var.s3_bucket_name
       ATHENA_DATABASE = var.athena_database
     }
