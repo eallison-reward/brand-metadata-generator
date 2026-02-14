@@ -7,6 +7,8 @@
 
 # Lambda function for feedback submission
 resource "aws_lambda_function" "feedback_submission" {
+  count = fileexists("${path.module}/../../../lambda_functions/feedback_submission.zip") ? 1 : 0
+
   filename         = "${path.module}/../../../lambda_functions/feedback_submission.zip"
   function_name    = "brand-metagen-feedback-submission-${var.environment}"
   role             = aws_iam_role.quick_suite_lambda_role.arn
@@ -29,6 +31,8 @@ resource "aws_lambda_function" "feedback_submission" {
 
 # Lambda function for feedback retrieval
 resource "aws_lambda_function" "feedback_retrieval" {
+  count = fileexists("${path.module}/../../../lambda_functions/feedback_retrieval.zip") ? 1 : 0
+
   filename         = "${path.module}/../../../lambda_functions/feedback_retrieval.zip"
   function_name    = "brand-metagen-feedback-retrieval-${var.environment}"
   role             = aws_iam_role.quick_suite_lambda_role.arn
@@ -50,6 +54,8 @@ resource "aws_lambda_function" "feedback_retrieval" {
 
 # Lambda function for status updates
 resource "aws_lambda_function" "status_updates" {
+  count = fileexists("${path.module}/../../../lambda_functions/status_updates.zip") ? 1 : 0
+
   filename         = "${path.module}/../../../lambda_functions/status_updates.zip"
   function_name    = "brand-metagen-status-updates-${var.environment}"
   role             = aws_iam_role.quick_suite_lambda_role.arn
@@ -72,6 +78,8 @@ resource "aws_lambda_function" "status_updates" {
 
 # Lambda function for brand data retrieval (for Quick Suite display)
 resource "aws_lambda_function" "brand_data_retrieval" {
+  count = fileexists("${path.module}/../../../lambda_functions/brand_data_retrieval.zip") ? 1 : 0
+
   filename         = "${path.module}/../../../lambda_functions/brand_data_retrieval.zip"
   function_name    = "brand-metagen-brand-data-${var.environment}"
   role             = aws_iam_role.quick_suite_lambda_role.arn
@@ -207,92 +215,116 @@ resource "aws_apigatewayv2_stage" "quick_suite_api_stage" {
 
 # API Gateway integration for feedback submission
 resource "aws_apigatewayv2_integration" "feedback_submission" {
+  count = length(aws_lambda_function.feedback_submission) > 0 ? 1 : 0
+
   api_id           = aws_apigatewayv2_api.quick_suite_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.feedback_submission.invoke_arn
+  integration_uri  = aws_lambda_function.feedback_submission[0].invoke_arn
 }
 
 # API Gateway route for feedback submission
 resource "aws_apigatewayv2_route" "feedback_submission" {
+  count = length(aws_apigatewayv2_integration.feedback_submission) > 0 ? 1 : 0
+
   api_id    = aws_apigatewayv2_api.quick_suite_api.id
   route_key = "POST /feedback"
-  target    = "integrations/${aws_apigatewayv2_integration.feedback_submission.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.feedback_submission[0].id}"
 }
 
 # Lambda permission for API Gateway (feedback submission)
 resource "aws_lambda_permission" "feedback_submission_api" {
+  count = length(aws_lambda_function.feedback_submission) > 0 ? 1 : 0
+
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.feedback_submission.function_name
+  function_name = aws_lambda_function.feedback_submission[0].function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.quick_suite_api.execution_arn}/*/*"
 }
 
 # API Gateway integration for feedback retrieval
 resource "aws_apigatewayv2_integration" "feedback_retrieval" {
+  count = length(aws_lambda_function.feedback_retrieval) > 0 ? 1 : 0
+
   api_id           = aws_apigatewayv2_api.quick_suite_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.feedback_retrieval.invoke_arn
+  integration_uri  = aws_lambda_function.feedback_retrieval[0].invoke_arn
 }
 
 # API Gateway route for feedback retrieval
 resource "aws_apigatewayv2_route" "feedback_retrieval" {
+  count = length(aws_apigatewayv2_integration.feedback_retrieval) > 0 ? 1 : 0
+
   api_id    = aws_apigatewayv2_api.quick_suite_api.id
   route_key = "GET /feedback/{brandid}"
-  target    = "integrations/${aws_apigatewayv2_integration.feedback_retrieval.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.feedback_retrieval[0].id}"
 }
 
 # Lambda permission for API Gateway (feedback retrieval)
 resource "aws_lambda_permission" "feedback_retrieval_api" {
+  count = length(aws_lambda_function.feedback_retrieval) > 0 ? 1 : 0
+
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.feedback_retrieval.function_name
+  function_name = aws_lambda_function.feedback_retrieval[0].function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.quick_suite_api.execution_arn}/*/*"
 }
 
 # API Gateway integration for status updates
 resource "aws_apigatewayv2_integration" "status_updates" {
+  count = length(aws_lambda_function.status_updates) > 0 ? 1 : 0
+
   api_id           = aws_apigatewayv2_api.quick_suite_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.status_updates.invoke_arn
+  integration_uri  = aws_lambda_function.status_updates[0].invoke_arn
 }
 
 # API Gateway route for status updates
 resource "aws_apigatewayv2_route" "status_updates" {
+  count = length(aws_apigatewayv2_integration.status_updates) > 0 ? 1 : 0
+
   api_id    = aws_apigatewayv2_api.quick_suite_api.id
   route_key = "GET /status"
-  target    = "integrations/${aws_apigatewayv2_integration.status_updates.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.status_updates[0].id}"
 }
 
 # Lambda permission for API Gateway (status updates)
 resource "aws_lambda_permission" "status_updates_api" {
+  count = length(aws_lambda_function.status_updates) > 0 ? 1 : 0
+
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.status_updates.function_name
+  function_name = aws_lambda_function.status_updates[0].function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.quick_suite_api.execution_arn}/*/*"
 }
 
 # API Gateway integration for brand data retrieval
 resource "aws_apigatewayv2_integration" "brand_data_retrieval" {
+  count = length(aws_lambda_function.brand_data_retrieval) > 0 ? 1 : 0
+
   api_id           = aws_apigatewayv2_api.quick_suite_api.id
   integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.brand_data_retrieval.invoke_arn
+  integration_uri  = aws_lambda_function.brand_data_retrieval[0].invoke_arn
 }
 
 # API Gateway route for brand data retrieval
 resource "aws_apigatewayv2_route" "brand_data_retrieval" {
+  count = length(aws_apigatewayv2_integration.brand_data_retrieval) > 0 ? 1 : 0
+
   api_id    = aws_apigatewayv2_api.quick_suite_api.id
   route_key = "GET /brands/{brandid}"
-  target    = "integrations/${aws_apigatewayv2_integration.brand_data_retrieval.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.brand_data_retrieval[0].id}"
 }
 
 # Lambda permission for API Gateway (brand data retrieval)
 resource "aws_lambda_permission" "brand_data_retrieval_api" {
+  count = length(aws_lambda_function.brand_data_retrieval) > 0 ? 1 : 0
+
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.brand_data_retrieval.function_name
+  function_name = aws_lambda_function.brand_data_retrieval[0].function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.quick_suite_api.execution_arn}/*/*"
 }
@@ -305,21 +337,21 @@ output "quick_suite_api_endpoint" {
 
 output "feedback_submission_lambda_arn" {
   description = "ARN of feedback submission Lambda function"
-  value       = aws_lambda_function.feedback_submission.arn
+  value       = length(aws_lambda_function.feedback_submission) > 0 ? aws_lambda_function.feedback_submission[0].arn : ""
 }
 
 output "feedback_retrieval_lambda_arn" {
   description = "ARN of feedback retrieval Lambda function"
-  value       = aws_lambda_function.feedback_retrieval.arn
+  value       = length(aws_lambda_function.feedback_retrieval) > 0 ? aws_lambda_function.feedback_retrieval[0].arn : ""
 }
 
 output "status_updates_lambda_arn" {
   description = "ARN of status updates Lambda function"
-  value       = aws_lambda_function.status_updates.arn
+  value       = length(aws_lambda_function.status_updates) > 0 ? aws_lambda_function.status_updates[0].arn : ""
 }
 
 output "brand_data_retrieval_lambda_arn" {
   description = "ARN of brand data retrieval Lambda function"
-  value       = aws_lambda_function.brand_data_retrieval.arn
+  value       = length(aws_lambda_function.brand_data_retrieval) > 0 ? aws_lambda_function.brand_data_retrieval[0].arn : ""
 }
 
