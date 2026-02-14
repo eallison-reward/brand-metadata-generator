@@ -1,4 +1,4 @@
-# Variables for dev environment
+# Variables for prod environment
 
 variable "project_name" {
   description = "Project name"
@@ -9,7 +9,7 @@ variable "project_name" {
 variable "environment" {
   description = "Environment name"
   type        = string
-  default     = "dev"
+  default     = "prod"
 }
 
 variable "aws_region" {

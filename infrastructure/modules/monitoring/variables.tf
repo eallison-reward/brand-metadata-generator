@@ -75,3 +75,25 @@ variable "quicksight_principal_arn" {
   type        = string
   default     = ""
 }
+
+variable "s3_bucket_name" {
+  description = "S3 bucket name for data storage"
+  type        = string
+}
+
+variable "athena_database" {
+  description = "Athena database name"
+  type        = string
+}
+
+variable "dynamodb_table_name" {
+  description = "DynamoDB table name for workflow state"
+  type        = string
+  default     = ""
+}
+
+variable "feedback_processing_agent_id" {
+  description = "Feedback Processing Agent ID"
+  type        = string
+  default     = ""
+}

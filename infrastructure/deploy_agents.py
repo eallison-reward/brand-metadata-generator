@@ -31,6 +31,8 @@ AGENTS = [
     "commercial_assessment",
     "confirmation",
     "tiebreaker",
+    "feedback_processing",
+    "learning_analytics",
 ]
 
 # Agent configuration
@@ -70,6 +72,16 @@ AGENT_CONFIG = {
         "timeout": 180,
         "description": "Resolves combos matching multiple brands",
     },
+    "feedback_processing": {
+        "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+        "timeout": 300,
+        "description": "Processes human feedback and generates refinement prompts",
+    },
+    "learning_analytics": {
+        "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+        "timeout": 300,
+        "description": "Analyzes feedback trends and calculates accuracy metrics",
+    },
 }
 
 
@@ -82,7 +94,7 @@ def get_agent_instruction_path(agent_name: str) -> Path:
     Returns:
         Path to instruction file
     """
-    return Path(f"prompts/{agent_name}_instructions.md")
+    return Path(f"infrastructure/prompts/{agent_name}_instructions.md")
 
 
 def read_agent_instructions(agent_name: str) -> str:
@@ -176,6 +188,25 @@ def create_or_update_agent(
         response = bedrock_agent_client.create_agent(**agent_params)
         agent_id = response['agent']['agentId']
         print(f"   ✅ Agent created successfully (ID: {agent_id})")
+        
+        # Wait for agent to be ready for preparation
+        print(f"   Waiting for agent to be ready...")
+        max_attempts = 30
+        for attempt in range(max_attempts):
+            response = bedrock_agent_client.get_agent(agentId=agent_id)
+            status = response['agent']['agentStatus']
+            
+            if status == 'NOT_PREPARED':
+                print(f"   ✅ Agent is ready for preparation")
+                break
+            elif status == 'FAILED':
+                print(f"   ❌ Agent creation failed")
+                return None
+            
+            time.sleep(2)
+        else:
+            print(f"   ⚠️  Agent creation timed out")
+            return None
         
         return agent_id
         

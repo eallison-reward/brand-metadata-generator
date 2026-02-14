@@ -21,7 +21,6 @@ resource "aws_lambda_function" "feedback_submission" {
       S3_BUCKET            = var.s3_bucket_name
       DYNAMODB_TABLE       = var.dynamodb_table_name
       FEEDBACK_AGENT_ID    = var.feedback_processing_agent_id
-      AWS_REGION           = var.aws_region
     }
   }
 
@@ -43,7 +42,6 @@ resource "aws_lambda_function" "feedback_retrieval" {
       ENVIRONMENT      = var.environment
       S3_BUCKET       = var.s3_bucket_name
       DYNAMODB_TABLE  = var.dynamodb_table_name
-      AWS_REGION      = var.aws_region
     }
   }
 
@@ -66,7 +64,6 @@ resource "aws_lambda_function" "status_updates" {
       S3_BUCKET       = var.s3_bucket_name
       DYNAMODB_TABLE  = var.dynamodb_table_name
       ATHENA_DATABASE = var.athena_database
-      AWS_REGION      = var.aws_region
     }
   }
 
@@ -88,7 +85,6 @@ resource "aws_lambda_function" "brand_data_retrieval" {
       ENVIRONMENT      = var.environment
       S3_BUCKET       = var.s3_bucket_name
       ATHENA_DATABASE = var.athena_database
-      AWS_REGION      = var.aws_region
     }
   }
 

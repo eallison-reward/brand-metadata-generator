@@ -1,4 +1,4 @@
-# Main Terraform configuration for dev environment
+# Main Terraform configuration for prod environment
 
 terraform {
   required_version = ">= 1.0"
@@ -14,7 +14,7 @@ terraform {
   # Uncomment and configure after creating S3 bucket for state
   # backend "s3" {
   #   bucket         = "brand-metadata-generator-terraform-state"
-  #   key            = "dev/terraform.tfstate"
+  #   key            = "prod/terraform.tfstate"
   #   region         = "eu-west-1"
   #   encrypt        = true
   #   dynamodb_table = "terraform-state-lock"
@@ -61,7 +61,7 @@ module "dynamodb" {
   project_name                  = var.project_name
   environment                   = var.environment
   agent_names                   = var.agent_names
-  enable_point_in_time_recovery = false # Disabled for dev
+  enable_point_in_time_recovery = true # Enabled for prod
   common_tags                   = local.common_tags
 }
 
@@ -96,7 +96,7 @@ module "monitoring" {
   aws_region                    = var.aws_region
   agent_names                   = var.agent_names
   state_machine_arn             = module.step_functions.state_machine_arn
-  create_sns_topic              = false # Disabled for dev
+  create_sns_topic              = true # Enabled for prod
   s3_bucket_name                = module.storage.s3_bucket_name
   athena_database               = module.storage.athena_database_name
   dynamodb_table_name           = "brand-metagen-workflow-state-${var.environment}"
