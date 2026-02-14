@@ -1,0 +1,465 @@
+{
+  "Comment": "Brand Metadata Generator Workflow with Human-in-the-Loop (HITL) Feedback Processing",
+  "StartAt": "InitializeWorkflow",
+  "States": {
+    "InitializeWorkflow": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${workflow_init_lambda_arn}",
+        "Payload": {
+          "config.$": "$.config"
+        }
+      },
+      "ResultPath": "$.workflow_config",
+      "ResultSelector": {
+        "config.$": "$.Payload.config",
+        "state.$": "$.Payload.state"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "Next": "InvokeOrchestrator"
+    },
+    
+    "InvokeOrchestrator": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${orchestrator_invoke_lambda_arn}",
+        "Payload": {
+          "workflow_config.$": "$.workflow_config",
+          "iteration.$": "$.iteration"
+        }
+      },
+      "ResultPath": "$.orchestrator_result",
+      "ResultSelector": {
+        "status.$": "$.Payload.status",
+        "succeeded_brands.$": "$.Payload.succeeded_brands",
+        "failed_brands.$": "$.Payload.failed_brands",
+        "brands_requiring_review.$": "$.Payload.brands_requiring_review",
+        "summary.$": "$.Payload.summary"
+      },
+      "TimeoutSeconds": 3600,
+      "HeartbeatSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.Timeout"],
+          "ResultPath": "$.error",
+          "Next": "HandleTimeout"
+        },
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "HandlePartialCompletion"
+        }
+      ],
+      "Next": "CheckOrchestratorStatus"
+    },
+    
+    "CheckOrchestratorStatus": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.orchestrator_result.status",
+          "StringEquals": "completed",
+          "Next": "CheckHumanReviewRequired"
+        },
+        {
+          "Variable": "$.orchestrator_result.status",
+          "StringEquals": "partial",
+          "Next": "HandlePartialCompletion"
+        }
+      ],
+      "Default": "WorkflowFailed"
+    },
+    
+    "CheckHumanReviewRequired": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.orchestrator_result.brands_requiring_review[0]",
+          "IsPresent": true,
+          "Next": "PrepareHumanReview"
+        }
+      ],
+      "Default": "AggregateResults"
+    },
+    
+    "PrepareHumanReview": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${prepare_human_review_lambda_arn}",
+        "Payload": {
+          "brands_requiring_review.$": "$.orchestrator_result.brands_requiring_review",
+          "workflow_config.$": "$.workflow_config"
+        }
+      },
+      "ResultPath": "$.human_review_data",
+      "ResultSelector": {
+        "review_url.$": "$.Payload.review_url",
+        "brands.$": "$.Payload.brands",
+        "prepared_at.$": "$.Payload.prepared_at"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "WaitForHumanReview"
+    },
+    
+    "WaitForHumanReview": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${wait_for_feedback_lambda_arn}",
+        "Payload": {
+          "brands.$": "$.human_review_data.brands",
+          "task_token.$": "$$.Task.Token",
+          "workflow_execution_arn.$": "$$.Execution.Id"
+        }
+      },
+      "ResultPath": "$.feedback_result",
+      "ResultSelector": {
+        "action.$": "$.Payload.action",
+        "feedback_data.$": "$.Payload.feedback_data",
+        "brands_approved.$": "$.Payload.brands_approved",
+        "brands_rejected.$": "$.Payload.brands_rejected"
+      },
+      "TimeoutSeconds": 86400,
+      "HeartbeatSeconds": 3600,
+      "Catch": [
+        {
+          "ErrorEquals": ["States.Timeout"],
+          "ResultPath": "$.error",
+          "Next": "HandleHumanReviewTimeout"
+        },
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "Next": "ProcessFeedback"
+    },
+    
+    "ProcessFeedback": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.feedback_result.action",
+          "StringEquals": "approve_all",
+          "Next": "AggregateResults"
+        },
+        {
+          "And": [
+            {
+              "Variable": "$.feedback_result.action",
+              "StringEquals": "reject_with_feedback"
+            },
+            {
+              "Variable": "$.feedback_result.brands_rejected[0]",
+              "IsPresent": true
+            }
+          ],
+          "Next": "CheckIterationLimit"
+        }
+      ],
+      "Default": "AggregateResults"
+    },
+    
+    "CheckIterationLimit": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.iteration",
+          "NumericGreaterThanEquals": 10,
+          "Next": "EscalateToManagement"
+        }
+      ],
+      "Default": "InvokeFeedbackProcessing"
+    },
+    
+    "InvokeFeedbackProcessing": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${feedback_processing_lambda_arn}",
+        "Payload": {
+          "brands_rejected.$": "$.feedback_result.brands_rejected",
+          "feedback_data.$": "$.feedback_result.feedback_data",
+          "workflow_config.$": "$.workflow_config"
+        }
+      },
+      "ResultPath": "$.feedback_processing_result",
+      "ResultSelector": {
+        "status.$": "$.Payload.status",
+        "refinement_prompts.$": "$.Payload.refinement_prompts",
+        "brands_to_regenerate.$": "$.Payload.brands_to_regenerate"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "Next": "RegenerateMetadata"
+    },
+    
+    "RegenerateMetadata": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${metadata_regeneration_lambda_arn}",
+        "Payload": {
+          "brands_to_regenerate.$": "$.feedback_processing_result.brands_to_regenerate",
+          "refinement_prompts.$": "$.feedback_processing_result.refinement_prompts",
+          "workflow_config.$": "$.workflow_config",
+          "iteration.$": "$.iteration"
+        }
+      },
+      "ResultPath": "$.regeneration_result",
+      "ResultSelector": {
+        "status.$": "$.Payload.status",
+        "regenerated_brands.$": "$.Payload.regenerated_brands"
+      },
+      "TimeoutSeconds": 1800,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "Next": "ReapplyMetadata"
+    },
+    
+    "ReapplyMetadata": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${reapply_metadata_lambda_arn}",
+        "Payload": {
+          "regenerated_brands.$": "$.regeneration_result.regenerated_brands",
+          "workflow_config.$": "$.workflow_config"
+        }
+      },
+      "ResultPath": "$.reapply_result",
+      "ResultSelector": {
+        "status.$": "$.Payload.status",
+        "brands_reclassified.$": "$.Payload.brands_reclassified"
+      },
+      "TimeoutSeconds": 1800,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "Next": "IncrementIteration"
+    },
+    
+    "IncrementIteration": {
+      "Type": "Pass",
+      "Parameters": {
+        "iteration.$": "States.MathAdd($.iteration, 1)",
+        "workflow_config.$": "$.workflow_config",
+        "config.$": "$.config"
+      },
+      "Next": "PrepareHumanReview"
+    },
+    
+    "EscalateToManagement": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${escalation_lambda_arn}",
+        "Payload": {
+          "brands_rejected.$": "$.feedback_result.brands_rejected",
+          "iteration.$": "$.iteration",
+          "workflow_config.$": "$.workflow_config",
+          "reason": "Maximum iteration limit (10) exceeded"
+        }
+      },
+      "ResultPath": "$.escalation_result",
+      "ResultSelector": {
+        "status.$": "$.Payload.status",
+        "escalation_ticket.$": "$.Payload.escalation_ticket",
+        "notification_sent.$": "$.Payload.notification_sent"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "AggregateResults"
+    },
+    
+    "HandleHumanReviewTimeout": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${handle_timeout_lambda_arn}",
+        "Payload": {
+          "timeout_type": "human_review",
+          "brands.$": "$.human_review_data.brands",
+          "workflow_config.$": "$.workflow_config"
+        }
+      },
+      "ResultPath": "$.timeout_result",
+      "Next": "AggregateResults"
+    },
+    
+    "HandlePartialCompletion": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${handle_partial_lambda_arn}",
+        "Payload": {
+          "orchestrator_result.$": "$.orchestrator_result",
+          "workflow_config.$": "$.workflow_config",
+          "error.$": "$.error"
+        }
+      },
+      "ResultPath": "$.partial_result",
+      "Next": "AggregateResults"
+    },
+    
+    "HandleTimeout": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${handle_timeout_lambda_arn}",
+        "Payload": {
+          "timeout_type": "orchestrator",
+          "workflow_config.$": "$.workflow_config",
+          "error.$": "$.error"
+        }
+      },
+      "ResultPath": "$.timeout_result",
+      "Next": "WorkflowFailed"
+    },
+    
+    "AggregateResults": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${result_aggregation_lambda_arn}",
+        "Payload": {
+          "orchestrator_result.$": "$.orchestrator_result",
+          "workflow_config.$": "$.workflow_config",
+          "feedback_result.$": "$.feedback_result",
+          "iteration.$": "$.iteration"
+        }
+      },
+      "ResultPath": "$.aggregation_result",
+      "ResultSelector": {
+        "summary.$": "$.Payload.summary",
+        "report_location.$": "$.Payload.report_location"
+      },
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "Next": "UpdateMonitoring"
+    },
+    
+    "UpdateMonitoring": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${update_monitoring_lambda_arn}",
+        "Payload": {
+          "summary.$": "$.aggregation_result.summary",
+          "workflow_config.$": "$.workflow_config"
+        }
+      },
+      "ResultPath": "$.monitoring_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "WorkflowSucceeded"
+    },
+    
+    "WorkflowSucceeded": {
+      "Type": "Succeed"
+    },
+    
+    "WorkflowFailed": {
+      "Type": "Fail",
+      "Error": "WorkflowExecutionFailed",
+      "Cause": "The workflow encountered an unrecoverable error"
+    }
+  }
+}
