@@ -13,7 +13,7 @@ resource "aws_lambda_function" "feedback_submission" {
   function_name    = "brand-metagen-feedback-submission-${var.environment}"
   role             = aws_iam_role.quick_suite_lambda_role.arn
   handler          = "handler.lambda_handler"
-  source_code_hash = filebase64sha256("${path.module}/../../../lambda_functions/feedback_submission.zip")
+  source_code_hash = try(filebase64sha256("${path.module}/../../../lambda_functions/feedback_submission.zip"), null)
   runtime          = "python3.12"
   timeout          = 60
 
@@ -37,7 +37,7 @@ resource "aws_lambda_function" "feedback_retrieval" {
   function_name    = "brand-metagen-feedback-retrieval-${var.environment}"
   role             = aws_iam_role.quick_suite_lambda_role.arn
   handler          = "handler.lambda_handler"
-  source_code_hash = filebase64sha256("${path.module}/../../../lambda_functions/feedback_retrieval.zip")
+  source_code_hash = try(filebase64sha256("${path.module}/../../../lambda_functions/feedback_retrieval.zip"), null)
   runtime          = "python3.12"
   timeout          = 30
 
@@ -60,7 +60,7 @@ resource "aws_lambda_function" "status_updates" {
   function_name    = "brand-metagen-status-updates-${var.environment}"
   role             = aws_iam_role.quick_suite_lambda_role.arn
   handler          = "handler.lambda_handler"
-  source_code_hash = filebase64sha256("${path.module}/../../../lambda_functions/status_updates.zip")
+  source_code_hash = try(filebase64sha256("${path.module}/../../../lambda_functions/status_updates.zip"), null)
   runtime          = "python3.12"
   timeout          = 30
 
@@ -84,7 +84,7 @@ resource "aws_lambda_function" "brand_data_retrieval" {
   function_name    = "brand-metagen-brand-data-${var.environment}"
   role             = aws_iam_role.quick_suite_lambda_role.arn
   handler          = "handler.lambda_handler"
-  source_code_hash = filebase64sha256("${path.module}/../../../lambda_functions/brand_data_retrieval.zip")
+  source_code_hash = try(filebase64sha256("${path.module}/../../../lambda_functions/brand_data_retrieval.zip"), null)
   runtime          = "python3.12"
   timeout          = 30
 
