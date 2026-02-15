@@ -45,6 +45,9 @@ TOOL_LAMBDA_FUNCTIONS = [
     "get_workflow_stats",
 ]
 
+# Router Lambda function name
+ROUTER_LAMBDA_NAME = "conversational_router"
+
 
 def read_instruction_prompt() -> str:
     """Read agent instruction prompt from file.
@@ -107,6 +110,177 @@ def get_lambda_function_arn(
         return None
 
 
+def deploy_router_lambda(
+    lambda_client: Any,
+    iam_client: Any,
+    env: str,
+    function_arns: Dict[str, str],
+    dry_run: bool = False
+) -> Optional[str]:
+    """Deploy router Lambda function.
+    
+    Args:
+        lambda_client: Boto3 Lambda client
+        iam_client: Boto3 IAM client
+        env: Environment name
+        function_arns: Dictionary mapping function names to ARNs
+        dry_run: If True, only print what would be done
+        
+    Returns:
+        Router Lambda ARN if successful, None otherwise
+    """
+    print("\n🚀 Deploying router Lambda function...")
+    
+    function_name = f"brand_metagen_{ROUTER_LAMBDA_NAME}_{env}"
+    
+    if dry_run:
+        print(f"   [DRY RUN] Would deploy router Lambda: {function_name}")
+        return f"arn:aws:lambda:{AWS_REGION}:123456789012:function:{function_name}"
+    
+    # Create IAM role for router Lambda
+    role_name = f"brand_metagen_router_lambda_{env}"
+    
+    trust_policy = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {"Service": "lambda.amazonaws.com"},
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    }
+    
+    try:
+        # Try to create role
+        try:
+            role_response = iam_client.create_role(
+                RoleName=role_name,
+                AssumeRolePolicyDocument=json.dumps(trust_policy),
+                Description=f"Execution role for conversational router Lambda ({env})"
+            )
+            role_arn = role_response['Role']['Arn']
+            print(f"   ✓ Created IAM role: {role_name}")
+            
+            # Wait for role to be available
+            import time
+            time.sleep(10)
+        except iam_client.exceptions.EntityAlreadyExistsException:
+            role_response = iam_client.get_role(RoleName=role_name)
+            role_arn = role_response['Role']['Arn']
+            print(f"   ℹ️  Using existing IAM role: {role_name}")
+        
+        # Attach basic Lambda execution policy
+        iam_client.attach_role_policy(
+            RoleName=role_name,
+            PolicyArn="arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        )
+        
+        # Create inline policy for invoking tool Lambdas
+        policy_document = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Action": "lambda:InvokeFunction",
+                    "Resource": list(function_arns.values())
+                }
+            ]
+        }
+        
+        iam_client.put_role_policy(
+            RoleName=role_name,
+            PolicyName="invoke_tool_lambdas",
+            PolicyDocument=json.dumps(policy_document)
+        )
+        print(f"   ✓ Configured Lambda invoke permissions")
+        
+    except Exception as e:
+        print(f"   ❌ Failed to create/configure IAM role: {str(e)}")
+        return None
+    
+    # Package Lambda code
+    import zipfile
+    import tempfile
+    from pathlib import Path
+    
+    handler_path = Path("lambda_functions/conversational_router/handler.py")
+    
+    if not handler_path.exists():
+        print(f"   ❌ Router handler not found: {handler_path}")
+        return None
+    
+    # Create deployment package
+    with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp_file:
+        zip_path = tmp_file.name
+        
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(handler_path, 'handler.py')
+        
+        # Read zip file
+        with open(zip_path, 'rb') as f:
+            zip_content = f.read()
+    
+    # Deploy Lambda function
+    try:
+        # Check if function exists
+        try:
+            lambda_client.get_function(FunctionName=function_name)
+            function_exists = True
+        except lambda_client.exceptions.ResourceNotFoundException:
+            function_exists = False
+        
+        if function_exists:
+            print(f"   ℹ️  Updating existing Lambda function...")
+            lambda_client.update_function_code(
+                FunctionName=function_name,
+                ZipFile=zip_content
+            )
+            
+            # Update configuration
+            lambda_client.update_function_configuration(
+                FunctionName=function_name,
+                Runtime='python3.11',
+                Handler='handler.lambda_handler',
+                Role=role_arn,
+                Timeout=60,
+                MemorySize=256,
+                Environment={
+                    'Variables': {
+                        'ENV': env
+                    }
+                }
+            )
+        else:
+            print(f"   Creating new Lambda function...")
+            response = lambda_client.create_function(
+                FunctionName=function_name,
+                Runtime='python3.11',
+                Role=role_arn,
+                Handler='handler.lambda_handler',
+                Code={'ZipFile': zip_content},
+                Timeout=60,
+                MemorySize=256,
+                Environment={
+                    'Variables': {
+                        'ENV': env
+                    }
+                },
+                Description=f"Router for conversational interface agent ({env})"
+            )
+        
+        # Get function ARN
+        response = lambda_client.get_function(FunctionName=function_name)
+        function_arn = response['Configuration']['FunctionArn']
+        
+        print(f"   ✅ Router Lambda deployed: {function_arn}")
+        return function_arn
+        
+    except Exception as e:
+        print(f"   ❌ Failed to deploy router Lambda: {str(e)}")
+        return None
+
+
 def verify_lambda_functions(env: str) -> Dict[str, str]:
     """Verify all required Lambda functions exist and get their ARNs.
     
@@ -141,19 +315,20 @@ def verify_lambda_functions(env: str) -> Dict[str, str]:
 
 
 def create_action_group_config(
-    function_arns: Dict[str, str],
+    router_lambda_arn: str,
     tool_schemas: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
     """Create action group configuration for the agent.
     
     Args:
-        function_arns: Dictionary mapping function names to ARNs
+        router_lambda_arn: ARN of the router Lambda function
         tool_schemas: List of tool schema definitions
         
     Returns:
         Action group configuration
     """
-    # Map tool schemas to Lambda functions
+    # Build OpenAPI schema compatible with Bedrock Agents
+    # Bedrock requires a simplified OpenAPI 3.0 schema
     api_schema = {
         "openapi": "3.0.0",
         "info": {
@@ -169,37 +344,46 @@ def create_action_group_config(
         tool_name = tool["name"]
         path = f"/{tool_name}"
         
-        api_schema["paths"][path] = {
-            "post": {
-                "summary": tool["description"],
-                "operationId": tool_name,
-                "requestBody": {
-                    "required": True,
-                    "content": {
-                        "application/json": {
-                            "schema": tool["inputSchema"]
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": tool["outputSchema"]
-                            }
-                        }
+        # Bedrock Agents requires specific schema format
+        # Input schema must be in requestBody
+        request_body = {
+            "required": len(tool["inputSchema"].get("required", [])) > 0,
+            "content": {
+                "application/json": {
+                    "schema": tool["inputSchema"]
+                }
+            }
+        }
+        
+        # Output schema in response
+        response_schema = {
+            "200": {
+                "description": "Successful response",
+                "content": {
+                    "application/json": {
+                        "schema": tool.get("outputSchema", {"type": "object"})
                     }
                 }
             }
         }
+        
+        api_schema["paths"][path] = {
+            "post": {
+                "summary": tool["description"],
+                "description": tool["description"],
+                "operationId": tool_name,
+                "requestBody": request_body,
+                "responses": response_schema
+            }
+        }
     
+    # Use router Lambda as the action group executor
     return {
         "apiSchema": {
             "payload": json.dumps(api_schema)
         },
         "actionGroupExecutor": {
-            "lambda": function_arns[list(function_arns.keys())[0]]  # Use first Lambda as executor
+            "lambda": router_lambda_arn
         }
     }
 
@@ -207,7 +391,7 @@ def create_action_group_config(
 def update_agent_iam_role(
     iam_client: Any,
     role_name: str,
-    function_arns: Dict[str, str],
+    lambda_arns: Dict[str, str],
     env: str,
     dry_run: bool = False
 ) -> bool:
@@ -216,7 +400,7 @@ def update_agent_iam_role(
     Args:
         iam_client: Boto3 IAM client
         role_name: IAM role name
-        function_arns: Dictionary mapping function names to ARNs
+        lambda_arns: Dictionary mapping Lambda names to ARNs
         env: Environment name
         dry_run: If True, only print what would be done
         
@@ -236,7 +420,7 @@ def update_agent_iam_role(
             {
                 "Effect": "Allow",
                 "Action": "lambda:InvokeFunction",
-                "Resource": list(function_arns.values())
+                "Resource": list(lambda_arns.values())
             }
         ]
     }
@@ -362,7 +546,7 @@ def create_or_update_action_group(
     bedrock_agent_client: Any,
     agent_id: str,
     agent_version: str,
-    function_arns: Dict[str, str],
+    router_lambda_arn: str,
     tool_schemas: List[Dict[str, Any]],
     dry_run: bool = False
 ) -> Optional[str]:
@@ -372,7 +556,7 @@ def create_or_update_action_group(
         bedrock_agent_client: Boto3 Bedrock Agent client
         agent_id: Agent ID
         agent_version: Agent version (typically "DRAFT")
-        function_arns: Dictionary mapping function names to ARNs
+        router_lambda_arn: ARN of the router Lambda function
         tool_schemas: List of tool schema definitions
         dry_run: If True, only print what would be done
         
@@ -388,7 +572,7 @@ def create_or_update_action_group(
     action_group_name = "conversational_interface_tools"
     
     # Create action group configuration
-    action_group_config = create_action_group_config(function_arns, tool_schemas)
+    action_group_config = create_action_group_config(router_lambda_arn, tool_schemas)
     
     try:
         # Check if action group already exists
@@ -602,12 +786,26 @@ def deploy_agent(
     # Initialize AWS clients
     bedrock_agent_client = boto3.client('bedrock-agent', region_name=AWS_REGION)
     iam_client = boto3.client('iam', region_name=AWS_REGION)
+    lambda_client = boto3.client('lambda', region_name=AWS_REGION)
+    
+    # Deploy router Lambda
+    router_lambda_arn = deploy_router_lambda(
+        lambda_client,
+        iam_client,
+        env,
+        function_arns,
+        dry_run
+    )
+    
+    if not router_lambda_arn:
+        print("\n❌ Failed to deploy router Lambda")
+        return False
     
     # Extract role name from ARN
     role_name = execution_role_arn.split('/')[-1]
     
-    # Update IAM role with Lambda invoke permissions
-    if not update_agent_iam_role(iam_client, role_name, function_arns, env, dry_run):
+    # Update IAM role with Lambda invoke permissions (for router Lambda)
+    if not update_agent_iam_role(iam_client, role_name, {'router': router_lambda_arn}, env, dry_run):
         return False
     
     # Create or update agent
@@ -628,7 +826,7 @@ def deploy_agent(
         bedrock_agent_client,
         agent_id,
         "DRAFT",
-        function_arns,
+        router_lambda_arn,
         tool_schemas,
         dry_run
     )
