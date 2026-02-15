@@ -225,7 +225,7 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Modify escalation creation to write to escalations table
     - _Requirements: 6.4_
   
-  - [~] 12.6 Write property test for dual storage consistency
+  - [x] 12.6 Write property test for dual storage consistency
     - **Property 20: Dual Storage Consistency**
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4**
 
@@ -271,15 +271,15 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Add error-specific suggestions
     - _Requirements: 9.1, 9.2, 9.3, 9.4_
   
-  - [~] 14.4 Write property test for tool error structure
+  - [x] 14.4 Write property test for tool error structure
     - **Property 22: Tool Error Structure**
     - **Validates: Requirements 7.9**
   
-  - [~] 14.5 Write property test for CloudWatch logging
+  - [x] 14.5 Write property test for CloudWatch logging
     - **Property 23: CloudWatch Logging**
     - **Validates: Requirements 9.5**
   
-  - [~] 14.6 Write property test for error message helpfulness
+  - [x] 14.6 Write property test for error message helpfulness
     - **Property 3: Error Message Helpfulness**
     - **Validates: Requirements 1.3, 2.5, 9.1, 9.2, 9.3, 9.4**
 
