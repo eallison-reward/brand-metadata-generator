@@ -1,0 +1,686 @@
+{
+  "tools": [
+    {
+      "name": "query_brands_to_check",
+      "description": "Query the brands_to_check Athena table to find brands that need to be processed. Use this tool when the user wants to see which brands are available for processing, or to verify a brand exists before starting a workflow. Supports filtering by status (e.g., 'unprocessed', 'processed') and pagination.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Optional filter by brand status. Common values: 'unprocessed' (brands not yet processed), 'processed' (brands already processed), 'failed' (brands with processing errors). Omit to return all brands regardless of status."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of brands to return. Must be positive and cannot exceed 1000. Default is 10. Use higher values when the user wants to see many brands at once.",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 10
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "brands": {
+            "type": "array",
+            "description": "List of brand records matching the query criteria",
+            "items": {
+              "type": "object",
+              "properties": {
+                "brandid": {
+                  "type": "integer",
+                  "description": "Unique brand identifier"
+                },
+                "brandname": {
+                  "type": "string",
+                  "description": "Brand name"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Processing status of the brand"
+                },
+                "sector": {
+                  "type": "string",
+                  "description": "Business sector/category of the brand"
+                }
+              }
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "Total number of brands matching the query (may be more than returned if limit was applied)"
+          }
+        }
+      }
+    },
+    {
+      "name": "start_workflow",
+      "description": "Start Step Functions workflows to process one or more brands. Use this tool when the user wants to process a specific brand, multiple brands, or all unprocessed brands. The tool validates that brands exist before starting workflows and returns execution ARNs for status tracking. Always verify brands exist using query_brands_to_check before starting workflows for user-provided brand IDs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "brandid": {
+            "description": "Brand ID(s) to process. Can be a single integer for one brand, or an array of integers for multiple brands. Each brand ID must be positive and exist in the brands_to_check table.",
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "minItems": 1
+              }
+            ]
+          },
+          "execution_name": {
+            "type": "string",
+            "description": "Optional base name for the workflow execution. If provided, it will be combined with the brand ID and timestamp to ensure uniqueness. If omitted, a name will be auto-generated. Use this when the user wants to give the workflow a meaningful name.",
+            "minLength": 1
+          }
+        },
+        "required": ["brandid"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "executions": {
+            "type": "array",
+            "description": "List of started workflow executions",
+            "items": {
+              "type": "object",
+              "properties": {
+                "brandid": {
+                  "type": "integer",
+                  "description": "Brand ID being processed"
+                },
+                "execution_arn": {
+                  "type": "string",
+                  "description": "Step Functions execution ARN - use this with check_workflow_status to monitor progress"
+                },
+                "start_time": {
+                  "type": "string",
+                  "description": "ISO 8601 timestamp when the workflow started"
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "boolean",
+            "description": "True if at least one workflow started successfully"
+          },
+          "errors": {
+            "type": "array",
+            "description": "Optional list of errors for brands that failed to start (only present if some brands failed)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "brandid": {
+                  "type": "integer"
+                },
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "partial_success": {
+            "type": "boolean",
+            "description": "True if some workflows started but others failed (only present when applicable)"
+          }
+        }
+      }
+    },
+    {
+      "name": "check_workflow_status",
+      "description": "Query the status of a Step Functions workflow execution. Use this tool when the user wants to check if a workflow is still running, has completed successfully, or has failed. Requires the execution ARN returned by start_workflow. The tool returns detailed status information including timing, output data for successful executions, and error details for failed executions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "execution_arn": {
+            "type": "string",
+            "description": "Step Functions execution ARN to query. This is returned by the start_workflow tool. Format: arn:aws:states:region:account:execution:stateMachine:executionName",
+            "pattern": "^arn:aws:states:",
+            "minLength": 1
+          }
+        },
+        "required": ["execution_arn"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Current execution status",
+            "enum": ["RUNNING", "SUCCEEDED", "FAILED", "TIMED_OUT", "ABORTED"]
+          },
+          "start_time": {
+            "type": "string",
+            "description": "ISO 8601 timestamp when execution started"
+          },
+          "stop_time": {
+            "type": "string",
+            "description": "ISO 8601 timestamp when execution completed (only present if execution has finished)"
+          },
+          "output": {
+            "type": "object",
+            "description": "Execution output data (only present if status is SUCCEEDED)"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error type (only present if execution failed)"
+          },
+          "cause": {
+            "type": "string",
+            "description": "Detailed error cause (only present if execution failed)"
+          },
+          "execution_name": {
+            "type": "string",
+            "description": "Name of the execution"
+          },
+          "state_machine_arn": {
+            "type": "string",
+            "description": "ARN of the state machine"
+          },
+          "input": {
+            "type": "object",
+            "description": "Input data provided to the execution"
+          }
+        }
+      }
+    },
+    {
+      "name": "submit_feedback",
+      "description": "Submit user feedback on generated brand metadata. Use this tool when the user reports issues with metadata, suggests corrections, or provides general comments. The tool parses the feedback text to identify the category (regex_issue, category_issue, false_positive, false_negative, general), extracts specific issues mentioned, and stores the feedback for processing. Feedback is automatically retried once if storage fails.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "brandid": {
+            "type": "integer",
+            "description": "Brand ID for which feedback is being submitted. Must be a positive integer corresponding to an existing brand.",
+            "minimum": 1
+          },
+          "feedback_text": {
+            "type": "string",
+            "description": "The user's feedback text describing the issue or suggestion. Should be clear and specific. Examples: 'The regex is too broad and matches unrelated transactions', 'Brand should be in Retail sector not Food & Beverage', 'Combo 12345 is incorrectly classified'.",
+            "minLength": 1
+          },
+          "metadata_version": {
+            "type": "integer",
+            "description": "Optional metadata version number the feedback applies to. If omitted, feedback applies to the latest version. Use this when the user specifically mentions a version number.",
+            "minimum": 1
+          }
+        },
+        "required": ["brandid", "feedback_text"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "feedback_id": {
+            "type": "string",
+            "description": "Unique feedback identifier (UUID) for tracking"
+          },
+          "stored": {
+            "type": "boolean",
+            "description": "True if feedback was successfully stored"
+          },
+          "storage_location": {
+            "type": "string",
+            "description": "S3 URI where feedback was stored"
+          },
+          "category": {
+            "type": "string",
+            "description": "Identified feedback category",
+            "enum": ["regex_issue", "category_issue", "false_positive", "false_negative", "general"]
+          },
+          "issues_identified": {
+            "type": "array",
+            "description": "List of specific issues extracted from the feedback text",
+            "items": {
+              "type": "string"
+            }
+          },
+          "misclassified_combos": {
+            "type": "array",
+            "description": "List of combo IDs mentioned in the feedback (if any)",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "query_metadata",
+      "description": "Retrieve brand metadata from S3 storage. Use this tool when the user wants to see the generated metadata for a specific brand, including the regex pattern, MCC IDs, confidence score, and other details. Supports retrieving specific versions or the latest version. Returns formatted metadata in a readable structure.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "brandid": {
+            "type": "integer",
+            "description": "Brand ID to retrieve metadata for. Must be a positive integer.",
+            "minimum": 1
+          },
+          "version": {
+            "description": "Metadata version to retrieve. Can be 'latest' for the most recent version, or a specific version number. Default is 'latest'.",
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["latest"]
+              },
+              {
+                "type": "integer",
+                "minimum": 1
+              }
+            ],
+            "default": "latest"
+          }
+        },
+        "required": ["brandid"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "found": {
+            "type": "boolean",
+            "description": "True if metadata was found, false otherwise"
+          },
+          "brandid": {
+            "type": "integer",
+            "description": "Brand ID queried"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Formatted metadata (only present if found is true)",
+            "properties": {
+              "brandid": {
+                "type": "integer"
+              },
+              "brandname": {
+                "type": "string",
+                "description": "Brand name"
+              },
+              "regex": {
+                "type": "string",
+                "description": "Regular expression pattern for matching transactions"
+              },
+              "mccids": {
+                "type": "array",
+                "description": "List of Merchant Category Code IDs",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "confidence_score": {
+                "type": "number",
+                "description": "Confidence score between 0 and 1 indicating quality of metadata"
+              },
+              "version": {
+                "type": "integer",
+                "description": "Metadata version number"
+              },
+              "generated_at": {
+                "type": "string",
+                "description": "ISO 8601 timestamp when metadata was generated"
+              },
+              "evaluator_issues": {
+                "type": "array",
+                "description": "List of issues identified by evaluator (if any)",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "coverage_narratives_matched": {
+                "type": "number",
+                "description": "Percentage of narratives matched (0-1)"
+              },
+              "coverage_false_positives": {
+                "type": "number",
+                "description": "Percentage of false positives (0-1)"
+              },
+              "matched_combos_summary": {
+                "type": "object",
+                "description": "Summary of matched combos",
+                "properties": {
+                  "confirmed_count": {
+                    "type": "integer"
+                  },
+                  "excluded_count": {
+                    "type": "integer"
+                  },
+                  "requires_review_count": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "sector": {
+                "type": "string",
+                "description": "Business sector/category"
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "description": "Message explaining why metadata was not found (only present if found is false)"
+          }
+        }
+      }
+    },
+    {
+      "name": "execute_athena_query",
+      "description": "Execute parameterized Athena queries to retrieve data from the system. Use this tool when the user wants to query brands by criteria (confidence score, category, status), view recent workflows, or run custom SQL queries. Supports predefined query templates for common use cases and custom SQL for advanced queries. Results are paginated for large datasets.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query_type": {
+            "type": "string",
+            "description": "Type of query to execute. Predefined types: 'brands_by_confidence' (query brands with confidence in a range), 'brands_by_category' (query brands by sector), 'recent_workflows' (query recent workflow executions), 'escalations_pending' (query pending escalations), 'low_confidence_brands' (query brands below confidence threshold), 'brands_by_status' (query brands by processing status), 'custom' (execute custom SQL query).",
+            "enum": [
+              "brands_by_confidence",
+              "brands_by_category",
+              "recent_workflows",
+              "escalations_pending",
+              "low_confidence_brands",
+              "brands_by_status",
+              "custom"
+            ]
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Query-specific parameters. Required parameters vary by query_type: brands_by_confidence requires min_confidence and max_confidence (0-1); brands_by_category requires sector (string); recent_workflows requires days (integer); low_confidence_brands requires threshold (0-1); brands_by_status requires status (string); custom requires sql (string).",
+            "properties": {
+              "min_confidence": {
+                "type": "number",
+                "description": "Minimum confidence score (0-1) for brands_by_confidence query",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "max_confidence": {
+                "type": "number",
+                "description": "Maximum confidence score (0-1) for brands_by_confidence query",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "sector": {
+                "type": "string",
+                "description": "Sector name for brands_by_category query (e.g., 'Food & Beverage', 'Retail')"
+              },
+              "days": {
+                "type": "integer",
+                "description": "Number of days to look back for recent_workflows query",
+                "minimum": 1
+              },
+              "threshold": {
+                "type": "number",
+                "description": "Confidence threshold for low_confidence_brands query (brands below this value)",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "status": {
+                "type": "string",
+                "description": "Status value for brands_by_status query (e.g., 'unprocessed', 'processed')"
+              },
+              "sql": {
+                "type": "string",
+                "description": "Custom SQL query for custom query_type. Must be valid Athena SQL.",
+                "minLength": 1
+              }
+            }
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of results to return. Must be positive and cannot exceed 1000. Default is 10.",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 10
+          },
+          "page_size": {
+            "type": "integer",
+            "description": "Number of results to return in this response (for pagination). Must be positive and cannot exceed 100. Default is 10.",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Number of results to skip (for pagination). Use next_offset from previous response to get next page. Default is 0.",
+            "minimum": 0,
+            "default": 0
+          }
+        },
+        "required": ["query_type", "parameters"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Query results as array of objects. Structure varies by query type.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "row_count": {
+            "type": "integer",
+            "description": "Number of rows returned in this response"
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "Total number of rows matching the query (may be more than row_count)"
+          },
+          "execution_time_ms": {
+            "type": "integer",
+            "description": "Query execution time in milliseconds"
+          },
+          "query_type": {
+            "type": "string",
+            "description": "Type of query that was executed"
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "True if there are more results available (use next_offset to retrieve)"
+          },
+          "next_offset": {
+            "type": "integer",
+            "description": "Offset to use for retrieving next page of results (only present if has_more is true)"
+          },
+          "pagination": {
+            "type": "object",
+            "description": "Pagination information",
+            "properties": {
+              "page_size": {
+                "type": "integer"
+              },
+              "offset": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "list_escalations",
+      "description": "List brands awaiting human review from the escalations table. Use this tool when the user wants to see which brands need manual review, typically due to low confidence scores, conflicting assessments, or other issues. Results can be sorted by different fields and are paginated. Only returns unresolved escalations (status is 'pending' or not yet resolved).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of escalations to return. Must be positive and cannot exceed 100. Default is 10.",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10
+          },
+          "sort_by": {
+            "type": "string",
+            "description": "Field to sort results by. 'escalated_at' sorts by time (most recent first), 'confidence_score' sorts by score (lowest first), 'brandid' sorts by ID (ascending), 'brandname' sorts alphabetically. Default is 'escalated_at'.",
+            "enum": ["escalated_at", "confidence_score", "brandid", "brandname"],
+            "default": "escalated_at"
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "escalations": {
+            "type": "array",
+            "description": "List of escalation records",
+            "items": {
+              "type": "object",
+              "properties": {
+                "escalation_id": {
+                  "type": "string",
+                  "description": "Unique escalation identifier (UUID)"
+                },
+                "brandid": {
+                  "type": "integer",
+                  "description": "Brand ID requiring review"
+                },
+                "brandname": {
+                  "type": "string",
+                  "description": "Brand name"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "Reason for escalation (e.g., 'low_confidence', 'tie_unresolved', 'evaluator_issues')"
+                },
+                "confidence_score": {
+                  "type": "number",
+                  "description": "Confidence score of the metadata (0-1)"
+                },
+                "escalated_at": {
+                  "type": "string",
+                  "description": "ISO 8601 timestamp when escalation was created"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Escalation status (typically 'pending' for unresolved)"
+                }
+              }
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "Total number of unresolved escalations in the system"
+          },
+          "returned_count": {
+            "type": "integer",
+            "description": "Number of escalations returned in this response"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Limit that was applied"
+          },
+          "sort_by": {
+            "type": "string",
+            "description": "Sort field that was used"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_workflow_stats",
+      "description": "Get workflow execution statistics for a time period. Use this tool when the user wants to check system health, see how many workflows have run, check success rates, or monitor system performance. Calculates aggregated statistics including total executions, success/failure counts, success rate percentage, and average execution duration. Optionally includes detailed execution records.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "time_period": {
+            "type": "string",
+            "description": "Time period to calculate statistics for. 'last_hour' includes executions from the past hour, 'last_day' from the past 24 hours, 'last_week' from the past 7 days.",
+            "enum": ["last_hour", "last_day", "last_week"]
+          },
+          "include_details": {
+            "type": "boolean",
+            "description": "If true, includes detailed execution records (up to 50 most recent) in addition to aggregated statistics. Default is false. Use when the user wants to see specific execution details, not just summary statistics.",
+            "default": false
+          }
+        },
+        "required": ["time_period"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "time_period": {
+            "type": "string",
+            "description": "Time period the statistics cover"
+          },
+          "total_executions": {
+            "type": "integer",
+            "description": "Total number of workflow executions in the time period"
+          },
+          "successful": {
+            "type": "integer",
+            "description": "Number of successful executions"
+          },
+          "failed": {
+            "type": "integer",
+            "description": "Number of failed executions"
+          },
+          "running": {
+            "type": "integer",
+            "description": "Number of currently running executions"
+          },
+          "success_rate": {
+            "type": "number",
+            "description": "Success rate as a percentage (0-100), calculated as successful / (successful + failed) * 100"
+          },
+          "average_duration_seconds": {
+            "type": "number",
+            "description": "Average execution duration in seconds for completed workflows"
+          },
+          "brands_processed": {
+            "type": "integer",
+            "description": "Number of unique brands processed in the time period"
+          },
+          "execution_details": {
+            "type": "array",
+            "description": "Detailed execution records (only present if include_details is true)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "execution_arn": {
+                  "type": "string",
+                  "description": "Step Functions execution ARN"
+                },
+                "brandid": {
+                  "type": "integer",
+                  "description": "Brand ID processed"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Execution status"
+                },
+                "start_time": {
+                  "type": "string",
+                  "description": "ISO 8601 start timestamp"
+                },
+                "stop_time": {
+                  "type": "string",
+                  "description": "ISO 8601 stop timestamp (if completed)"
+                },
+                "duration_seconds": {
+                  "type": "integer",
+                  "description": "Execution duration in seconds"
+                },
+                "error_message": {
+                  "type": "string",
+                  "description": "Error message (only present if execution failed)"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

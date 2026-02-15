@@ -14,14 +14,14 @@ def mock_athena():
 
 
 @pytest.fixture
-def mock_s3():
-    """Mock S3 client."""
-    with patch("agents.data_transformation.tools.S3Client") as mock:
+def mock_dual_storage():
+    """Mock DualStorageClient."""
+    with patch("agents.data_transformation.tools.DualStorageClient") as mock:
         yield mock
 
 
 @pytest.fixture
-def tools(mock_athena, mock_s3):
+def tools(mock_athena, mock_dual_storage):
     """Create DataTransformationTools instance with mocked clients."""
     return DataTransformationTools()
 
@@ -134,12 +134,17 @@ class TestDataValidation:
 
 
 class TestS3Operations:
-    """Test S3 storage functionality."""
+    """Test dual storage functionality."""
 
-    def test_write_to_s3_success(self, tools, mock_s3):
-        """Test successful S3 write."""
-        mock_instance = mock_s3.return_value
-        mock_instance.write_metadata.return_value = "metadata/brand_123.json"
+    def test_write_to_s3_success(self, tools, mock_dual_storage):
+        """Test successful write using dual storage."""
+        mock_instance = mock_dual_storage.return_value
+        mock_instance.write_metadata.return_value = {
+            "s3_key": "metadata/brand_123.json",
+            "bucket": "brand-generator-rwrd-023-eu-west-1",
+            "table": "generated_metadata",
+            "status": "success"
+        }
         
         metadata = {"regex": "^TEST.*", "mccids": [5812]}
         result = tools.write_to_s3(123, metadata)
@@ -147,20 +152,21 @@ class TestS3Operations:
         assert result["success"] is True
         assert result["brandid"] == 123
         assert "s3_key" in result
+        assert "table" in result
 
-    def test_write_to_s3_error(self, tools, mock_s3):
-        """Test S3 write error handling."""
-        mock_instance = mock_s3.return_value
-        mock_instance.write_metadata.side_effect = Exception("S3 error")
+    def test_write_to_s3_error(self, tools, mock_dual_storage):
+        """Test write error handling."""
+        mock_instance = mock_dual_storage.return_value
+        mock_instance.write_metadata.side_effect = Exception("Dual storage error")
         
         result = tools.write_to_s3(123, {})
         
         assert result["success"] is False
         assert "error" in result
 
-    def test_read_from_s3_found(self, tools, mock_s3):
-        """Test successful S3 read."""
-        mock_instance = mock_s3.return_value
+    def test_read_from_s3_found(self, tools, mock_dual_storage):
+        """Test successful read."""
+        mock_instance = mock_dual_storage.return_value
         mock_instance.read_metadata.return_value = {"regex": "^TEST.*"}
         
         result = tools.read_from_s3(123)
@@ -169,9 +175,9 @@ class TestS3Operations:
         assert result["found"] is True
         assert "metadata" in result
 
-    def test_read_from_s3_not_found(self, tools, mock_s3):
-        """Test S3 read when file doesn't exist."""
-        mock_instance = mock_s3.return_value
+    def test_read_from_s3_not_found(self, tools, mock_dual_storage):
+        """Test read when file doesn't exist."""
+        mock_instance = mock_dual_storage.return_value
         mock_instance.read_metadata.return_value = None
         
         result = tools.read_from_s3(123)

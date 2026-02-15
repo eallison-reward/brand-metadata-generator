@@ -4,7 +4,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 from shared.storage.athena_client import AthenaClient
-from shared.storage.s3_client import S3Client
+from shared.storage.dual_storage import DualStorageClient
 
 
 class DataTransformationTools:
@@ -24,7 +24,7 @@ class DataTransformationTools:
             region: AWS region
         """
         self.athena = AthenaClient(database=athena_database, region=region)
-        self.s3 = S3Client(bucket=s3_bucket, region=region)
+        self.dual_storage = DualStorageClient(bucket=s3_bucket, database=athena_database, region=region)
 
     def query_athena(
         self, table_name: str, columns: str = "*", where: Optional[str] = None, limit: Optional[int] = None
@@ -175,7 +175,7 @@ class DataTransformationTools:
             return {"success": False, "error": str(e)}
 
     def write_to_s3(self, brandid: int, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        """Write brand metadata to S3.
+        """Write brand metadata to both S3 and Athena using dual storage.
         
         Args:
             brandid: Brand ID
@@ -185,12 +185,13 @@ class DataTransformationTools:
             Dictionary with write result
         """
         try:
-            key = self.s3.write_metadata(brandid, metadata)
+            result = self.dual_storage.write_metadata(brandid, metadata)
             return {
                 "success": True,
                 "brandid": brandid,
-                "s3_key": key,
-                "bucket": self.s3.bucket,
+                "s3_key": result["s3_key"],
+                "bucket": result["bucket"],
+                "table": result["table"],
             }
         except Exception as e:
             return {"success": False, "brandid": brandid, "error": str(e)}
@@ -205,7 +206,7 @@ class DataTransformationTools:
             Dictionary with read result
         """
         try:
-            metadata = self.s3.read_metadata(brandid)
+            metadata = self.dual_storage.read_metadata(brandid)
             if metadata is None:
                 return {
                     "success": True,

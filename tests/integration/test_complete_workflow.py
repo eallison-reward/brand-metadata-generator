@@ -209,10 +209,10 @@ class TestDataTransformationWorkflow:
     """Test data transformation and validation workflow."""
 
     @patch("agents.data_transformation.tools.AthenaClient")
-    @patch("agents.data_transformation.tools.S3Client")
+    @patch("agents.data_transformation.tools.DualStorageClient")
     def test_data_preparation_and_storage(
         self,
-        mock_s3_client,
+        mock_dual_storage_client,
         mock_athena_client
     ):
         """Test data preparation, validation, and storage workflow.
@@ -221,11 +221,11 @@ class TestDataTransformationWorkflow:
         1. Brand data preparation from Athena
         2. Regex validation
         3. MCCID validation
-        4. S3 storage
+        4. Dual storage (S3 + Athena)
         """
         # Setup mocks
         mock_athena = mock_athena_client.return_value
-        mock_s3 = mock_s3_client.return_value
+        mock_dual_storage = mock_dual_storage_client.return_value
         
         # Mock brand and combo queries
         mock_athena.execute_query.side_effect = [
@@ -251,7 +251,12 @@ class TestDataTransformationWorkflow:
             [{"mccid": 5812}]
         ]
         
-        mock_s3.write_metadata.return_value = "metadata/brand_123.json"
+        mock_dual_storage.write_metadata.return_value = {
+            "s3_key": "metadata/brand_123.json",
+            "bucket": "brand-generator-rwrd-023-eu-west-1",
+            "table": "generated_metadata",
+            "status": "success"
+        }
         
         # Initialize tools
         dt_tools = DataTransformationTools()

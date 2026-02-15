@@ -2,19 +2,33 @@
 Lambda function to escalate brands that exceed iteration limit to management.
 
 This function creates escalation tickets and sends notifications when brands
-exceed the maximum iteration limit (10).
+exceed the maximum iteration limit (10). Uses dual storage to write escalations
+to both S3 and Athena for queryability.
 """
 
 import json
 import os
+import sys
 import boto3
 from datetime import datetime
 from typing import Dict, Any, List
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
+from shared.storage.dual_storage import DualStorageClient
 
 # Initialize AWS clients
 sns_client = boto3.client('sns', region_name=os.environ.get('AWS_REGION', 'eu-west-1'))
 s3_client = boto3.client('s3', region_name=os.environ.get('AWS_REGION', 'eu-west-1'))
 dynamodb = boto3.resource('dynamodb', region_name=os.environ.get('AWS_REGION', 'eu-west-1'))
+
+# Initialize dual storage client
+dual_storage = DualStorageClient(
+    bucket=os.environ.get('S3_BUCKET', 'brand-generator-rwrd-023-eu-west-1'),
+    database="brand_metadata_generator_db",
+    region=os.environ.get('AWS_REGION', 'eu-west-1'),
+)
 
 # Environment variables
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'dev')
@@ -63,8 +77,11 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             reason=reason
         )
         
-        # Store escalation in DynamoDB
+        # Store escalation in DynamoDB (for workflow state)
         store_escalation(escalation_ticket)
+        
+        # Store escalation using dual storage (for queryability via Athena)
+        store_escalation_dual_storage(escalation_ticket)
         
         # Send notification
         notification_sent = send_escalation_notification(escalation_ticket)
@@ -138,7 +155,7 @@ def get_brand_details(brandid: int) -> Dict[str, Any]:
 
 
 def store_escalation(ticket: Dict[str, Any]) -> None:
-    """Store escalation ticket in DynamoDB."""
+    """Store escalation ticket in DynamoDB for workflow state management."""
     try:
         table = dynamodb.Table(DYNAMODB_TABLE)
         
@@ -151,7 +168,33 @@ def store_escalation(ticket: Dict[str, Any]) -> None:
             }
         )
     except Exception as e:
-        print(f"Error storing escalation: {str(e)}")
+        print(f"Error storing escalation to DynamoDB: {str(e)}")
+
+
+def store_escalation_dual_storage(ticket: Dict[str, Any]) -> None:
+    """Store escalation using dual storage for queryability via Athena."""
+    try:
+        # Convert ticket format to escalation format for dual storage
+        for brand in ticket['brands']:
+            escalation = {
+                "escalation_id": f"{ticket['ticket_id']}-{brand['brandid']}",
+                "brandid": brand['brandid'],
+                "brandname": brand['brandname'],
+                "reason": ticket['reason'],
+                "confidence_score": brand.get('confidence_score', 0.0),
+                "escalated_at": ticket['created_at'],
+                "status": ticket['status'],
+                "iteration": ticket['iteration'],
+                "environment": ticket['environment'],
+            }
+            
+            result = dual_storage.write_escalation(escalation)
+            print(f"Escalation stored via dual storage: {result['s3_key']}")
+            
+    except Exception as e:
+        print(f"Error storing escalation via dual storage: {str(e)}")
+        # Don't fail the entire escalation if dual storage fails
+        # The escalation is still stored in DynamoDB
 
 
 def send_escalation_notification(ticket: Dict[str, Any]) -> bool:
