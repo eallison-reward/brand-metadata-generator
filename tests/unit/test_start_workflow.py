@@ -25,11 +25,11 @@ class TestStartWorkflowHandler:
         """Create handler instance with mocked dependencies."""
         with patch.dict('os.environ', {'STATE_MACHINE_ARN': 'arn:aws:states:eu-west-1:123456789012:stateMachine:test-workflow'}):
             with patch('lambda_functions.start_workflow.handler.boto3.client'), \
-                 patch('lambda_functions.start_workflow.handler.AthenaClient'), \
+                 patch('lambda_functions.start_workflow.handler.DynamoDBClient'), \
                  patch('lambda_functions.start_workflow.handler.DualStorageClient'):
                 handler = StartWorkflowHandler()
                 handler.sfn_client = MagicMock()
-                handler.athena_client = MagicMock()
+                handler.dynamodb_client = MagicMock()
                 handler.dual_storage = MagicMock()
                 return handler
 
@@ -132,23 +132,16 @@ class TestStartWorkflowHandler:
 
     def test_verify_brand_exists_found(self, handler):
         """Test verify_brand_exists returns True when brand is found."""
-        handler.athena_client.query_table.return_value = [
-            {"brandid": 123}
-        ]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         
         result = handler.verify_brand_exists(123)
         
         assert result is True
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid",
-            where="brandid = 123",
-            limit=1
-        )
+        handler.dynamodb_client.get_brand_by_id.assert_called_once_with(123)
 
     def test_verify_brand_exists_not_found(self, handler):
         """Test verify_brand_exists returns False when brand is not found."""
-        handler.athena_client.query_table.return_value = []
+        handler.dynamodb_client.get_brand_by_id.return_value = None
         
         result = handler.verify_brand_exists(999)
         
@@ -156,7 +149,7 @@ class TestStartWorkflowHandler:
 
     def test_verify_brand_exists_handles_error(self, handler):
         """Test verify_brand_exists returns True on error (fail open)."""
-        handler.athena_client.query_table.side_effect = Exception("Athena error")
+        handler.dynamodb_client.get_brand_by_id.side_effect = Exception("DynamoDB error")
         
         result = handler.verify_brand_exists(123)
         
@@ -206,7 +199,7 @@ class TestStartWorkflowHandler:
     def test_start_single_workflow_success(self, handler):
         """Test starting workflow for a single brand successfully."""
         # Mock brand verification
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         
         # Mock Step Functions response
         handler.sfn_client.start_execution.return_value = {
@@ -234,7 +227,7 @@ class TestStartWorkflowHandler:
 
     def test_start_single_workflow_with_custom_execution_name(self, handler):
         """Test starting workflow with custom execution name."""
-        handler.athena_client.query_table.return_value = [{"brandid": 456}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 456}
         handler.sfn_client.start_execution.return_value = {
             "executionArn": "arn:aws:states:eu-west-1:123456789012:execution:test-workflow:custom-brand456-20240101-120000",
             "startDate": datetime(2024, 1, 1, 12, 0, 0)
@@ -250,7 +243,7 @@ class TestStartWorkflowHandler:
 
     def test_start_single_workflow_brand_not_found(self, handler):
         """Test starting workflow fails when brand doesn't exist."""
-        handler.athena_client.query_table.return_value = []
+        handler.dynamodb_client.get_brand_by_id.return_value = None
         
         with pytest.raises(UserInputError) as exc_info:
             handler.start_single_workflow(999)
@@ -263,7 +256,7 @@ class TestStartWorkflowHandler:
 
     def test_start_single_workflow_execution_already_exists(self, handler):
         """Test starting workflow fails when execution name already exists."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         
         # Mock Step Functions error
         error_response = {
@@ -281,7 +274,7 @@ class TestStartWorkflowHandler:
 
     def test_start_single_workflow_invalid_arn(self, handler):
         """Test starting workflow fails with invalid state machine ARN."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         
         # Mock Step Functions error
         error_response = {
@@ -300,7 +293,7 @@ class TestStartWorkflowHandler:
 
     def test_start_single_workflow_generic_error(self, handler):
         """Test starting workflow handles generic Step Functions errors."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         
         # Mock Step Functions error
         error_response = {
@@ -318,7 +311,7 @@ class TestStartWorkflowHandler:
 
     def test_start_single_workflow_logs_to_dual_storage(self, handler):
         """Test that workflow start is logged to dual storage."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         handler.sfn_client.start_execution.return_value = {
             "executionArn": "arn:aws:states:eu-west-1:123456789012:execution:test-workflow:brand123-20240101-120000",
             "startDate": datetime(2024, 1, 1, 12, 0, 0)
@@ -335,7 +328,7 @@ class TestStartWorkflowHandler:
 
     def test_start_single_workflow_continues_on_logging_error(self, handler):
         """Test that workflow start succeeds even if logging fails."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         handler.sfn_client.start_execution.return_value = {
             "executionArn": "arn:aws:states:eu-west-1:123456789012:execution:test-workflow:brand123-20240101-120000",
             "startDate": datetime(2024, 1, 1, 12, 0, 0)
@@ -355,7 +348,7 @@ class TestStartWorkflowHandler:
 
     def test_execute_single_brand(self, handler):
         """Test execute with single brand ID."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         handler.sfn_client.start_execution.return_value = {
             "executionArn": "arn:aws:states:eu-west-1:123456789012:execution:test-workflow:brand123-20240101-120000",
             "startDate": datetime(2024, 1, 1, 12, 0, 0)
@@ -372,10 +365,10 @@ class TestStartWorkflowHandler:
     def test_execute_multiple_brands_all_success(self, handler):
         """Test execute with multiple brand IDs, all succeed."""
         # Mock brand verification for all brands
-        handler.athena_client.query_table.side_effect = [
-            [{"brandid": 101}],
-            [{"brandid": 102}],
-            [{"brandid": 103}]
+        handler.dynamodb_client.get_brand_by_id.side_effect = [
+            {"brandid": 101},
+            {"brandid": 102},
+            {"brandid": 103}
         ]
         
         # Mock Step Functions responses
@@ -401,10 +394,10 @@ class TestStartWorkflowHandler:
     def test_execute_multiple_brands_partial_success(self, handler):
         """Test execute with multiple brands, some fail."""
         # Mock brand verification - second brand not found
-        handler.athena_client.query_table.side_effect = [
-            [{"brandid": 101}],
-            [],  # Brand 102 not found
-            [{"brandid": 103}]
+        handler.dynamodb_client.get_brand_by_id.side_effect = [
+            {"brandid": 101},
+            None,  # Brand 102 not found
+            {"brandid": 103}
         ]
         
         # Mock Step Functions responses for successful brands
@@ -431,7 +424,7 @@ class TestStartWorkflowHandler:
     def test_execute_multiple_brands_all_fail(self, handler):
         """Test execute with multiple brands, all fail."""
         # Mock brand verification - all brands not found
-        handler.athena_client.query_table.return_value = []
+        handler.dynamodb_client.get_brand_by_id.return_value = None
         
         parameters = {"brandid": [201, 202, 203]}
         
@@ -443,9 +436,9 @@ class TestStartWorkflowHandler:
 
     def test_execute_with_execution_name_multiple_brands(self, handler):
         """Test execute with custom execution name for multiple brands."""
-        handler.athena_client.query_table.side_effect = [
-            [{"brandid": 101}],
-            [{"brandid": 102}]
+        handler.dynamodb_client.get_brand_by_id.side_effect = [
+            {"brandid": 101},
+            {"brandid": 102}
         ]
         
         handler.sfn_client.start_execution.side_effect = [
@@ -474,43 +467,30 @@ class TestStartWorkflowHandler:
 
     def test_lambda_handler_success(self, handler):
         """Test lambda_handler with successful execution."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         handler.sfn_client.start_execution.return_value = {
             "executionArn": "arn:aws:states:eu-west-1:123456789012:execution:test-workflow:brand123-20240101-120000",
             "startDate": datetime(2024, 1, 1, 12, 0, 0)
         }
         
-        event = {
-            "parameters": {"brandid": 123},
-            "request_id": "test-request-123"
-        }
+        event = {"brandid": 123}
         
         response = handler.handle(event, None)
         
+        # Response should be direct (not wrapped)
         assert response["success"] is True
-        assert "data" in response
-        assert response["data"]["success"] is True
-        assert len(response["data"]["executions"]) == 1
-        assert response["request_id"] == "test-request-123"
+        assert len(response["executions"]) == 1
 
     def test_lambda_handler_validation_error(self, handler):
         """Test lambda_handler with validation error."""
-        event = {
-            "parameters": {"brandid": -5},
-            "request_id": "test-request-456"
-        }
+        event = {"brandid": -5}
         
-        response = handler.handle(event, None)
-        
-        assert response["success"] is False
-        assert "error" in response
-        assert response["error"]["type"] == "user_input"
-        assert "positive" in response["error"]["message"].lower()
-        assert response["request_id"] == "test-request-456"
+        with pytest.raises(UserInputError):
+            handler.handle(event, None)
 
     def test_lambda_handler_backend_error(self, handler):
         """Test lambda_handler with backend service error."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         
         error_response = {
             "Error": {
@@ -520,23 +500,16 @@ class TestStartWorkflowHandler:
         }
         handler.sfn_client.start_execution.side_effect = ClientError(error_response, "StartExecution")
         
-        event = {
-            "parameters": {"brandid": 123},
-            "request_id": "test-request-789"
-        }
+        event = {"brandid": 123}
         
-        response = handler.handle(event, None)
-        
-        assert response["success"] is False
-        assert "error" in response
-        assert response["error"]["type"] == "backend_service"
-        assert response["request_id"] == "test-request-789"
+        with pytest.raises(BackendServiceError):
+            handler.handle(event, None)
 
     # ========== Edge Cases ==========
 
     def test_execute_result_structure(self, handler):
         """Test that execute returns correct result structure."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         handler.sfn_client.start_execution.return_value = {
             "executionArn": "arn:aws:states:eu-west-1:123456789012:execution:test-workflow:brand123-20240101-120000",
             "startDate": datetime(2024, 1, 1, 12, 0, 0)
@@ -558,7 +531,7 @@ class TestStartWorkflowHandler:
 
     def test_workflow_input_structure(self, handler):
         """Test that workflow input has correct structure."""
-        handler.athena_client.query_table.return_value = [{"brandid": 123}]
+        handler.dynamodb_client.get_brand_by_id.return_value = {"brandid": 123}
         handler.sfn_client.start_execution.return_value = {
             "executionArn": "arn:aws:states:eu-west-1:123456789012:execution:test-workflow:brand123-20240101-120000",
             "startDate": datetime(2024, 1, 1, 12, 0, 0)
