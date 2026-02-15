@@ -1,6 +1,55 @@
 {
   "tools": [
     {
+      "name": "get_help",
+      "description": "Get detailed instructions for using any tool in the system. Use this tool when you're unsure how to use another tool or need examples.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tool_name": {
+            "type": "string",
+            "description": "Name of the tool you need help with (e.g., 'query_brands_to_check', 'start_workflow')"
+          }
+        },
+        "required": ["tool_name"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "found": {
+            "type": "boolean",
+            "description": "Whether help was found for the tool"
+          },
+          "tool_name": {
+            "type": "string",
+            "description": "Name of the tool"
+          },
+          "description": {
+            "type": "string",
+            "description": "What the tool does"
+          },
+          "when_to_use": {
+            "type": "array",
+            "description": "List of scenarios when to use this tool",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Detailed parameter information"
+          },
+          "examples": {
+            "type": "array",
+            "description": "Usage examples",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
       "name": "query_brands_to_check",
       "description": "Query the brands_to_check Athena table to find brands that need to be processed. Use this tool when the user wants to see which brands are available for processing, or to verify a brand exists before starting a workflow. Supports filtering by status (e.g., 'unprocessed', 'processed') and pagination.",
       "inputSchema": {

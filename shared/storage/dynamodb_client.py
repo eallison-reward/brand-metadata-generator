@@ -26,24 +26,24 @@ class DynamoDBClient:
         self.table = self.dynamodb.Table(table_name)
 
     def query_brands_by_status(
-        self, status: Optional[str] = None, limit: int = 10
+        self, brand_status: Optional[str] = None, limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Query brands by status using GSI.
         
         Args:
-            status: Status to filter by (optional)
+            brand_status: Status to filter by (optional)
             limit: Maximum number of results
             
         Returns:
             List of brand records
         """
         try:
-            if status:
-                # Query using status GSI
+            if brand_status:
+                # Query using brand_status GSI
                 response = self.table.query(
-                    IndexName="status-index",
-                    KeyConditionExpression="status = :status",
-                    ExpressionAttributeValues={":status": status},
+                    IndexName="brand-status-index",
+                    KeyConditionExpression="brand_status = :brand_status",
+                    ExpressionAttributeValues={":brand_status": brand_status},
                     Limit=limit,
                 )
             else:
@@ -84,21 +84,20 @@ class DynamoDBClient:
             raise Exception(f"Failed to put brand: {e}")
 
     def update_brand_status(
-        self, brandid: int, status: str, **additional_fields
+        self, brandid: int, brand_status: str, **additional_fields
     ) -> None:
         """Update brand status and other fields.
         
         Args:
             brandid: Brand ID
-            status: New status
+            brand_status: New status
             **additional_fields: Additional fields to update
         """
         try:
             # Build update expression
-            update_expression = "SET #status = :status, updated_at = :updated_at"
-            expression_attribute_names = {"#status": "status"}
+            update_expression = "SET brand_status = :brand_status, updated_at = :updated_at"
             expression_attribute_values = {
-                ":status": status,
+                ":brand_status": brand_status,
                 ":updated_at": self._get_current_timestamp(),
             }
             
@@ -110,7 +109,6 @@ class DynamoDBClient:
             self.table.update_item(
                 Key={"brandid": brandid},
                 UpdateExpression=update_expression,
-                ExpressionAttributeNames=expression_attribute_names,
                 ExpressionAttributeValues=expression_attribute_values,
             )
             
@@ -126,23 +124,25 @@ class DynamoDBClient:
         try:
             # Scan table and count by status
             response = self.table.scan(
-                ProjectionExpression="status"
+                ProjectionExpression="#brand_status",
+                ExpressionAttributeNames={"#brand_status": "brand_status"}
             )
             
             status_counts = {}
             for item in response.get("Items", []):
-                status = item.get("status", "unknown")
-                status_counts[status] = status_counts.get(status, 0) + 1
+                brand_status = item.get("brand_status", "unknown")
+                status_counts[brand_status] = status_counts.get(brand_status, 0) + 1
             
             # Handle pagination if needed
             while "LastEvaluatedKey" in response:
                 response = self.table.scan(
-                    ProjectionExpression="status",
+                    ProjectionExpression="#brand_status",
+                    ExpressionAttributeNames={"#brand_status": "brand_status"},
                     ExclusiveStartKey=response["LastEvaluatedKey"]
                 )
                 for item in response.get("Items", []):
-                    status = item.get("status", "unknown")
-                    status_counts[status] = status_counts.get(status, 0) + 1
+                    brand_status = item.get("brand_status", "unknown")
+                    status_counts[brand_status] = status_counts.get(brand_status, 0) + 1
             
             return status_counts
             

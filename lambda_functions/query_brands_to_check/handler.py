@@ -24,6 +24,34 @@ class QueryBrandsToCheckHandler(BaseToolHandler):
             region="eu-west-1",
         )
     
+    def handle(self, event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+        """Override handle to return direct response format for Bedrock Agent.
+        
+        Args:
+            event: Lambda event dictionary
+            context: Lambda context object
+            
+        Returns:
+            Direct response dictionary (not wrapped in success/data)
+        """
+        try:
+            # Extract parameters directly from event
+            parameters = event if isinstance(event, dict) else {}
+            
+            # Validate parameters
+            self.validate_parameters(parameters)
+            
+            # Execute tool logic
+            result = self.execute(parameters)
+            
+            # Return direct result (not wrapped)
+            return result
+            
+        except Exception as e:
+            # Log the error and re-raise
+            self.logger.error(f"Handler error: {e}")
+            raise
+    
     def validate_parameters(self, parameters: Dict[str, Any]) -> None:
         """Validate input parameters.
         
@@ -75,19 +103,19 @@ class QueryBrandsToCheckHandler(BaseToolHandler):
                 - total_count: Total number of matching brands
         """
         # Extract parameters
-        status = parameters.get("status")
+        brand_status = parameters.get("status")  # Map "status" parameter to "brand_status"
         limit = parameters.get("limit", 10)
         
         try:
             # Query brands from DynamoDB
-            brands = self.dynamodb_client.query_brands_by_status(status=status, limit=limit)
+            brands = self.dynamodb_client.query_brands_by_status(brand_status=brand_status, limit=limit)
             
             # Get status counts for total_count
             status_counts = self.dynamodb_client.get_status_counts()
             
-            if status:
+            if brand_status:
                 # Return count for specific status
-                total_count = status_counts.get(status, 0)
+                total_count = status_counts.get(brand_status, 0)
             else:
                 # Return total count across all statuses
                 total_count = sum(status_counts.values())
@@ -98,10 +126,8 @@ class QueryBrandsToCheckHandler(BaseToolHandler):
                 formatted_brand = {
                     'brandid': int(brand['brandid']),
                     'brandname': brand.get('brandname', f"Brand {brand['brandid']}"),
-                    'status': brand.get('status', 'unprocessed'),
+                    'status': brand.get('brand_status', 'unprocessed'),
                     'sector': brand.get('sector', 'Unknown'),
-                    'created_at': brand.get('created_at'),
-                    'updated_at': brand.get('updated_at'),
                 }
                 formatted_brands.append(formatted_brand)
             

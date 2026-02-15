@@ -23,6 +23,11 @@ MEMORY_SIZE = 512
 # Lambda function configurations
 LAMBDA_FUNCTIONS = [
     {
+        "name": "get_help",
+        "handler": "lambda_functions.get_help.handler.lambda_handler",
+        "description": "Get detailed instructions for using tools",
+    },
+    {
         "name": "query_brands_to_check",
         "handler": "lambda_functions.query_brands_to_check.handler.lambda_handler",
         "description": "Query brands_to_check table for brands to process",

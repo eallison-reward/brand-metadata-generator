@@ -18,6 +18,7 @@ AWS_REGION = os.environ.get('AWS_REGION', 'eu-west-1')
 
 # Map tool names to Lambda function names
 TOOL_TO_LAMBDA = {
+    'get_help': f'brand_metagen_get_help_{ENV}',
     'query_brands_to_check': f'brand_metagen_query_brands_to_check_{ENV}',
     'start_workflow': f'brand_metagen_start_workflow_{ENV}',
     'check_workflow_status': f'brand_metagen_check_workflow_status_{ENV}',

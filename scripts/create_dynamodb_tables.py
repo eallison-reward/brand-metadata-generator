@@ -36,16 +36,16 @@ def create_brand_processing_status_table(
                 "AttributeType": "N"
             },
             {
-                "AttributeName": "status",
+                "AttributeName": "brand_status",
                 "AttributeType": "S"
             }
         ],
         "GlobalSecondaryIndexes": [
             {
-                "IndexName": "status-index",
+                "IndexName": "brand-status-index",
                 "KeySchema": [
                     {
-                        "AttributeName": "status",
+                        "AttributeName": "brand_status",
                         "KeyType": "HASH"
                     }
                 ],
@@ -111,13 +111,13 @@ def verify_table_structure(table_name: str, region: str = "eu-west-1") -> bool:
         # Check GSI
         gsi_found = False
         for gsi in table_desc.get('GlobalSecondaryIndexes', []):
-            if gsi['IndexName'] == 'status-index':
+            if gsi['IndexName'] == 'brand-status-index':
                 print(f"   GSI: {gsi['IndexName']} - {gsi['IndexStatus']}")
                 gsi_found = True
                 break
         
         if not gsi_found:
-            print("   ❌ status-index GSI not found!")
+            print("   ❌ brand-status-index GSI not found!")
             return False
         
         print("   ✅ Table structure verified!")

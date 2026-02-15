@@ -108,7 +108,7 @@ def create_brand_records(
             'brandid': brand_id,
             'brandname': details.get('brandname', f'Brand {brand_id}'),
             'sector': details.get('sector', 'Unknown'),
-            'status': 'unprocessed',
+            'brand_status': 'unprocessed',
             'created_at': current_time,
             'updated_at': current_time,
             'workflow_execution_arn': None,

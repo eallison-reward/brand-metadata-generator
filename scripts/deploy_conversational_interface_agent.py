@@ -35,6 +35,7 @@ AGENT_CONFIG = {
 
 # Tool Lambda function names (must match deployed Lambda functions)
 TOOL_LAMBDA_FUNCTIONS = [
+    "get_help",
     "query_brands_to_check",
     "start_workflow",
     "check_workflow_status",

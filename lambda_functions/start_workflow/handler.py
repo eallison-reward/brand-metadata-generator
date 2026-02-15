@@ -49,6 +49,34 @@ class StartWorkflowHandler(BaseToolHandler):
         if not self.state_machine_arn:
             raise ValueError("STATE_MACHINE_ARN environment variable not set")
     
+    def handle(self, event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+        """Override handle to return direct response format for Bedrock Agent.
+        
+        Args:
+            event: Lambda event dictionary
+            context: Lambda context object
+            
+        Returns:
+            Direct response dictionary (not wrapped in success/data)
+        """
+        try:
+            # Extract parameters directly from event
+            parameters = event if isinstance(event, dict) else {}
+            
+            # Validate parameters
+            self.validate_parameters(parameters)
+            
+            # Execute tool logic
+            result = self.execute(parameters)
+            
+            # Return direct result (not wrapped)
+            return result
+            
+        except Exception as e:
+            # Log the error and re-raise
+            self.logger.error(f"Handler error: {e}")
+            raise
+    
     def validate_parameters(self, parameters: Dict[str, Any]) -> None:
         """Validate input parameters.
         
@@ -204,7 +232,7 @@ class StartWorkflowHandler(BaseToolHandler):
             try:
                 self.dynamodb_client.update_brand_status(
                     brandid=brandid,
-                    status="processing",
+                    brand_status="processing",
                     workflow_execution_arn=execution_arn
                 )
                 self.logger.info(f"Updated brand {brandid} status to processing")
