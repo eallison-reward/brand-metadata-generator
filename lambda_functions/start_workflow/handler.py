@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Union
 import boto3
 from botocore.exceptions import ClientError
 
-from shared.storage.athena_client import AthenaClient
+from shared.storage.dynamodb_client import DynamoDBClient
 from shared.storage.dual_storage import DualStorageClient
 from shared.utils.base_handler import BaseToolHandler
 from shared.utils.error_handler import BackendServiceError, UserInputError
@@ -31,11 +31,10 @@ class StartWorkflowHandler(BaseToolHandler):
         # Initialize Step Functions client
         self.sfn_client = boto3.client("stepfunctions", region_name="eu-west-1")
         
-        # Initialize Athena client for brand verification
-        self.athena_client = AthenaClient(
-            database="brand_metadata_generator_db",
+        # Initialize DynamoDB client for brand status tracking
+        self.dynamodb_client = DynamoDBClient(
+            table_name="brand_processing_status_dev",
             region="eu-west-1",
-            output_location="s3://brand-generator-rwrd-023-eu-west-1/query-results/",
         )
         
         # Initialize dual storage client for workflow execution logging
@@ -113,7 +112,7 @@ class StartWorkflowHandler(BaseToolHandler):
                 )
     
     def verify_brand_exists(self, brandid: int) -> bool:
-        """Verify that a brand exists in the brands_to_check table.
+        """Verify that a brand exists in the brand_processing_status table.
         
         Args:
             brandid: Brand ID to verify
@@ -122,13 +121,8 @@ class StartWorkflowHandler(BaseToolHandler):
             True if brand exists, False otherwise
         """
         try:
-            results = self.athena_client.query_table(
-                table_name="brands_to_check",
-                columns="brandid",
-                where=f"brandid = {brandid}",
-                limit=1,
-            )
-            return len(results) > 0
+            brand = self.dynamodb_client.get_brand_by_id(brandid)
+            return brand is not None
         except Exception as e:
             self.logger.warning(f"Failed to verify brand {brandid}: {str(e)}")
             # If verification fails, we'll let the workflow handle it
@@ -172,8 +166,8 @@ class StartWorkflowHandler(BaseToolHandler):
         # Verify brand exists
         if not self.verify_brand_exists(brandid):
             raise UserInputError(
-                f"Brand ID {brandid} not found in brands_to_check table",
-                suggestion="Verify the brand ID exists or add it to the brands_to_check table",
+                f"Brand ID {brandid} not found in brand_processing_status table",
+                suggestion="Verify the brand ID exists or add it to the brand_processing_status table",
             )
         
         # Generate execution name if not provided
@@ -205,6 +199,18 @@ class StartWorkflowHandler(BaseToolHandler):
             
             execution_arn = response["executionArn"]
             start_time = response["startDate"].isoformat()
+            
+            # Update brand status to "processing" in DynamoDB
+            try:
+                self.dynamodb_client.update_brand_status(
+                    brandid=brandid,
+                    status="processing",
+                    workflow_execution_arn=execution_arn
+                )
+                self.logger.info(f"Updated brand {brandid} status to processing")
+            except Exception as status_error:
+                # Log error but don't fail the workflow start
+                self.logger.error(f"Failed to update brand status: {str(status_error)}")
             
             # Log workflow execution start to dual storage
             try:

@@ -26,7 +26,7 @@ AGENT_NAME_PREFIX = "brand_metagen_conversational_interface"
 
 # Agent configuration
 AGENT_CONFIG = {
-    "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "model": "anthropic.claude-3-5-sonnet-20240620-v1:0",
     "timeout": 300,
     "description": "Natural language interface for Brand Metadata Generator system",
     "temperature": 0.7,
@@ -176,7 +176,7 @@ def deploy_router_lambda(
             PolicyArn="arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
         )
         
-        # Create inline policy for invoking tool Lambdas
+        # Create inline policy for invoking tool Lambdas and DynamoDB access
         policy_document = {
             "Version": "2012-10-17",
             "Statement": [
@@ -184,6 +184,23 @@ def deploy_router_lambda(
                     "Effect": "Allow",
                     "Action": "lambda:InvokeFunction",
                     "Resource": list(function_arns.values())
+                },
+                {
+                    "Effect": "Allow",
+                    "Action": [
+                        "dynamodb:GetItem",
+                        "dynamodb:PutItem",
+                        "dynamodb:UpdateItem",
+                        "dynamodb:DeleteItem",
+                        "dynamodb:Query",
+                        "dynamodb:Scan",
+                        "dynamodb:BatchGetItem",
+                        "dynamodb:BatchWriteItem"
+                    ],
+                    "Resource": [
+                        f"arn:aws:dynamodb:{AWS_REGION}:*:table/brand_processing_status_{env}",
+                        f"arn:aws:dynamodb:{AWS_REGION}:*:table/brand_processing_status_{env}/index/*"
+                    ]
                 }
             ]
         }

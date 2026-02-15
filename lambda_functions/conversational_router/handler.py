@@ -67,8 +67,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         for param in parameters:
             param_name = param.get('name')
             param_value = param.get('value')
+            param_type = param.get('type', 'string')
             if param_name and param_value is not None:
-                params_dict[param_name] = param_value
+                # Convert parameter value based on type
+                params_dict[param_name] = convert_parameter_value(param_value, param_type)
         
         # Merge with request body content if present
         if request_body and 'content' in request_body:
@@ -79,8 +81,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         for prop in content_data['properties']:
                             prop_name = prop.get('name')
                             prop_value = prop.get('value')
+                            prop_type = prop.get('type', 'string')
                             if prop_name and prop_value is not None:
-                                params_dict[prop_name] = prop_value
+                                # Convert parameter value based on type
+                                params_dict[prop_name] = convert_parameter_value(prop_value, prop_type)
         
         print(f"Invoking {target_function} with parameters: {params_dict}")
         
@@ -122,6 +126,45 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         error_msg = f"Router error: {str(e)}"
         print(f"ERROR: {error_msg}")
         return create_error_response(error_msg)
+
+
+def convert_parameter_value(value: Any, param_type: str) -> Any:
+    """Convert parameter value to the correct type.
+    
+    Args:
+        value: Parameter value (usually string)
+        param_type: Parameter type (string, integer, boolean, object, array)
+        
+    Returns:
+        Converted value
+    """
+    if param_type == 'integer':
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return value
+    elif param_type == 'boolean':
+        if isinstance(value, str):
+            return value.lower() in ('true', '1', 'yes', 'on')
+        return bool(value)
+    elif param_type == 'object':
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                return value
+        return value
+    elif param_type == 'array':
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                # Try to split by comma
+                return [item.strip() for item in value.split(',')]
+        return value
+    else:
+        # Default to string
+        return str(value) if value is not None else value
 
 
 def create_error_response(error_message: str) -> Dict[str, Any]:

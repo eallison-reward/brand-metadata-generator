@@ -1,6 +1,6 @@
 """Lambda handler for querying brands_to_check table.
 
-This tool queries the brands_to_check Athena table to find brands that need
+This tool queries the brand_processing_status DynamoDB table to find brands that need
 to be processed. It supports filtering by status and pagination.
 
 Requirements: 7.1, 2.1, 2.2, 2.3
@@ -8,7 +8,7 @@ Requirements: 7.1, 2.1, 2.2, 2.3
 
 from typing import Any, Dict
 
-from shared.storage.athena_client import AthenaClient
+from shared.storage.dynamodb_client import DynamoDBClient
 from shared.utils.base_handler import BaseToolHandler
 from shared.utils.error_handler import UserInputError
 
@@ -19,10 +19,9 @@ class QueryBrandsToCheckHandler(BaseToolHandler):
     def __init__(self):
         """Initialize handler."""
         super().__init__("query_brands_to_check")
-        self.athena_client = AthenaClient(
-            database="brand_metadata_generator_db",
+        self.dynamodb_client = DynamoDBClient(
+            table_name="brand_processing_status_dev",
             region="eu-west-1",
-            output_location="s3://brand-generator-rwrd-023-eu-west-1/query-results/",
         )
     
     def validate_parameters(self, parameters: Dict[str, Any]) -> None:
@@ -63,7 +62,7 @@ class QueryBrandsToCheckHandler(BaseToolHandler):
                 )
     
     def execute(self, parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute query against brands_to_check table.
+        """Execute query against brand_processing_status DynamoDB table.
         
         Args:
             parameters: Validated input parameters
@@ -79,28 +78,42 @@ class QueryBrandsToCheckHandler(BaseToolHandler):
         status = parameters.get("status")
         limit = parameters.get("limit", 10)
         
-        # Build WHERE clause
-        where_clause = None
-        if status:
-            where_clause = f"status = '{status}'"
-        
-        # Get total count
-        total_count = self.athena_client.get_table_count(
-            "brands_to_check", where=where_clause
-        )
-        
-        # Query brands
-        brands = self.athena_client.query_table(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where=where_clause,
-            limit=limit,
-        )
-        
-        return {
-            "brands": brands,
-            "total_count": total_count,
-        }
+        try:
+            # Query brands from DynamoDB
+            brands = self.dynamodb_client.query_brands_by_status(status=status, limit=limit)
+            
+            # Get status counts for total_count
+            status_counts = self.dynamodb_client.get_status_counts()
+            
+            if status:
+                # Return count for specific status
+                total_count = status_counts.get(status, 0)
+            else:
+                # Return total count across all statuses
+                total_count = sum(status_counts.values())
+            
+            # Convert DynamoDB items to expected format
+            formatted_brands = []
+            for brand in brands:
+                formatted_brand = {
+                    'brandid': int(brand['brandid']),
+                    'brandname': brand.get('brandname', f"Brand {brand['brandid']}"),
+                    'status': brand.get('status', 'unprocessed'),
+                    'sector': brand.get('sector', 'Unknown'),
+                    'created_at': brand.get('created_at'),
+                    'updated_at': brand.get('updated_at'),
+                }
+                formatted_brands.append(formatted_brand)
+            
+            return {
+                "brands": formatted_brands,
+                "total_count": total_count,
+            }
+            
+        except Exception as e:
+            # Log the error and re-raise with context
+            self.logger.error(f"Failed to query brands: {e}")
+            raise Exception(f"Failed to query brand processing status: {e}")
 
 
 # Lambda handler entry point
