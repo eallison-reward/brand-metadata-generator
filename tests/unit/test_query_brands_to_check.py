@@ -16,9 +16,9 @@ class TestQueryBrandsToCheckHandler:
     @pytest.fixture
     def handler(self):
         """Create handler instance with mocked dependencies."""
-        with patch('lambda_functions.query_brands_to_check.handler.AthenaClient'):
+        with patch('lambda_functions.query_brands_to_check.handler.DynamoDBClient'):
             handler = QueryBrandsToCheckHandler()
-            handler.athena_client = MagicMock()
+            handler.dynamodb_client = MagicMock()
             return handler
 
     # ========== Parameter Validation Tests ==========
@@ -106,22 +106,22 @@ class TestQueryBrandsToCheckHandler:
 
     def test_execute_with_status_filter(self, handler):
         """Test execute with status filter."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 25
-        handler.athena_client.query_table.return_value = [
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = [
             {
                 "brandid": 101,
                 "brandname": "Test Brand 1",
-                "status": "unprocessed",
+                "brand_status": "unprocessed",
                 "sector": "Retail"
             },
             {
                 "brandid": 102,
                 "brandname": "Test Brand 2",
-                "status": "unprocessed",
+                "brand_status": "unprocessed",
                 "sector": "Food & Beverage"
             }
         ]
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 25}
         
         # Execute
         parameters = {
@@ -130,17 +130,12 @@ class TestQueryBrandsToCheckHandler:
         }
         result = handler.execute(parameters)
         
-        # Verify Athena calls
-        handler.athena_client.get_table_count.assert_called_once_with(
-            "brands_to_check",
-            where="status = 'unprocessed'"
-        )
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where="status = 'unprocessed'",
+        # Verify DynamoDB calls
+        handler.dynamodb_client.query_brands_by_status.assert_called_once_with(
+            brand_status="unprocessed",
             limit=10
         )
+        handler.dynamodb_client.get_status_counts.assert_called_once()
         
         # Verify result
         assert result["total_count"] == 25
@@ -150,16 +145,16 @@ class TestQueryBrandsToCheckHandler:
 
     def test_execute_with_processed_status(self, handler):
         """Test execute with 'processed' status filter."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 150
-        handler.athena_client.query_table.return_value = [
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = [
             {
                 "brandid": 201,
                 "brandname": "Processed Brand",
-                "status": "processed",
+                "brand_status": "processed",
                 "sector": "Technology"
             }
         ]
+        handler.dynamodb_client.get_status_counts.return_value = {"processed": 150}
         
         # Execute
         parameters = {
@@ -167,28 +162,23 @@ class TestQueryBrandsToCheckHandler:
         }
         result = handler.execute(parameters)
         
-        # Verify WHERE clause includes status
-        handler.athena_client.get_table_count.assert_called_once_with(
-            "brands_to_check",
-            where="status = 'processed'"
-        )
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where="status = 'processed'",
+        # Verify DynamoDB calls
+        handler.dynamodb_client.query_brands_by_status.assert_called_once_with(
+            brand_status="processed",
             limit=10  # Default limit
         )
+        handler.dynamodb_client.get_status_counts.assert_called_once()
 
     # ========== Execute Tests with Limit Parameter ==========
 
     def test_execute_with_custom_limit(self, handler):
         """Test execute with custom limit parameter."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 500
-        handler.athena_client.query_table.return_value = [
-            {"brandid": i, "brandname": f"Brand {i}", "status": "unprocessed", "sector": "Retail"}
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = [
+            {"brandid": i, "brandname": f"Brand {i}", "brand_status": "unprocessed", "sector": "Retail"}
             for i in range(50)
         ]
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 500, "processed": 0}
         
         # Execute
         parameters = {
@@ -197,10 +187,8 @@ class TestQueryBrandsToCheckHandler:
         result = handler.execute(parameters)
         
         # Verify limit is passed correctly
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where=None,
+        handler.dynamodb_client.query_brands_by_status.assert_called_once_with(
+            brand_status=None,
             limit=50
         )
         
@@ -209,34 +197,32 @@ class TestQueryBrandsToCheckHandler:
 
     def test_execute_with_default_limit(self, handler):
         """Test execute uses default limit of 10 when not specified."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 100
-        handler.athena_client.query_table.return_value = []
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = []
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 100}
         
         # Execute with no parameters
         parameters = {}
         result = handler.execute(parameters)
         
         # Verify default limit of 10 is used
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where=None,
+        handler.dynamodb_client.query_brands_by_status.assert_called_once_with(
+            brand_status=None,
             limit=10
         )
 
     def test_execute_with_limit_1(self, handler):
         """Test execute with limit of 1."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 1000
-        handler.athena_client.query_table.return_value = [
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = [
             {
                 "brandid": 999,
                 "brandname": "Single Brand",
-                "status": "unprocessed",
+                "brand_status": "unprocessed",
                 "sector": "Finance"
             }
         ]
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 1000}
         
         # Execute
         parameters = {
@@ -245,19 +231,17 @@ class TestQueryBrandsToCheckHandler:
         result = handler.execute(parameters)
         
         # Verify
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where=None,
+        handler.dynamodb_client.query_brands_by_status.assert_called_once_with(
+            brand_status=None,
             limit=1
         )
         assert len(result["brands"]) == 1
 
     def test_execute_with_limit_1000(self, handler):
         """Test execute with maximum limit of 1000."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 5000
-        handler.athena_client.query_table.return_value = []
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = []
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 5000}
         
         # Execute
         parameters = {
@@ -266,10 +250,8 @@ class TestQueryBrandsToCheckHandler:
         result = handler.execute(parameters)
         
         # Verify maximum limit is accepted
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where=None,
+        handler.dynamodb_client.query_brands_by_status.assert_called_once_with(
+            brand_status=None,
             limit=1000
         )
 
@@ -277,16 +259,16 @@ class TestQueryBrandsToCheckHandler:
 
     def test_execute_with_status_and_limit(self, handler):
         """Test execute with both status and limit parameters."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 75
-        handler.athena_client.query_table.return_value = [
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = [
             {
                 "brandid": 301,
                 "brandname": "Combined Test Brand",
-                "status": "unprocessed",
+                "brand_status": "unprocessed",
                 "sector": "Healthcare"
             }
         ]
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 75}
         
         # Execute
         parameters = {
@@ -296,24 +278,19 @@ class TestQueryBrandsToCheckHandler:
         result = handler.execute(parameters)
         
         # Verify both parameters are used
-        handler.athena_client.get_table_count.assert_called_once_with(
-            "brands_to_check",
-            where="status = 'unprocessed'"
-        )
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where="status = 'unprocessed'",
+        handler.dynamodb_client.query_brands_by_status.assert_called_once_with(
+            brand_status="unprocessed",
             limit=25
         )
+        handler.dynamodb_client.get_status_counts.assert_called_once()
 
     # ========== Execute Tests for Edge Cases ==========
 
     def test_execute_with_no_results(self, handler):
         """Test execute when query returns no results."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 0
-        handler.athena_client.query_table.return_value = []
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = []
+        handler.dynamodb_client.get_status_counts.return_value = {"nonexistent_status": 0}
         
         # Execute
         parameters = {
@@ -328,51 +305,46 @@ class TestQueryBrandsToCheckHandler:
 
     def test_execute_without_status_filter(self, handler):
         """Test execute without status filter returns all brands."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 200
-        handler.athena_client.query_table.return_value = [
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = [
             {
                 "brandid": 401,
                 "brandname": "Any Status Brand 1",
-                "status": "processed",
+                "brand_status": "processed",
                 "sector": "Retail"
             },
             {
                 "brandid": 402,
                 "brandname": "Any Status Brand 2",
-                "status": "unprocessed",
+                "brand_status": "unprocessed",
                 "sector": "Technology"
             }
         ]
+        handler.dynamodb_client.get_status_counts.return_value = {"processed": 100, "unprocessed": 100}
         
         # Execute
         parameters = {}
         result = handler.execute(parameters)
         
-        # Verify no WHERE clause is used
-        handler.athena_client.get_table_count.assert_called_once_with(
-            "brands_to_check",
-            where=None
-        )
-        handler.athena_client.query_table.assert_called_once_with(
-            table_name="brands_to_check",
-            columns="brandid, brandname, status, sector",
-            where=None,
+        # Verify no status filter is used
+        handler.dynamodb_client.query_brands_by_status.assert_called_once_with(
+            brand_status=None,
             limit=10
         )
+        handler.dynamodb_client.get_status_counts.assert_called_once()
 
     def test_execute_result_structure(self, handler):
         """Test that execute returns correct result structure."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 3
-        handler.athena_client.query_table.return_value = [
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = [
             {
                 "brandid": 501,
                 "brandname": "Structure Test Brand",
-                "status": "unprocessed",
+                "brand_status": "unprocessed",
                 "sector": "Entertainment"
             }
         ]
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 3}
         
         # Execute
         result = handler.execute({})
@@ -394,22 +366,22 @@ class TestQueryBrandsToCheckHandler:
     # ========== Error Handling Tests ==========
 
     def test_execute_handles_athena_count_error(self, handler):
-        """Test execute handles errors from get_table_count."""
-        # Mock Athena error
-        handler.athena_client.get_table_count.side_effect = Exception("Athena query failed")
+        """Test execute handles errors from get_status_counts."""
+        # Mock DynamoDB error
+        handler.dynamodb_client.get_status_counts.side_effect = Exception("DynamoDB query failed")
         
         # Execute should raise the exception
         parameters = {"status": "unprocessed"}
         with pytest.raises(Exception) as exc_info:
             handler.execute(parameters)
         
-        assert "Athena query failed" in str(exc_info.value)
+        assert "DynamoDB query failed" in str(exc_info.value)
 
     def test_execute_handles_athena_query_error(self, handler):
-        """Test execute handles errors from query_table."""
+        """Test execute handles errors from query_brands_by_status."""
         # Mock successful count but failed query
-        handler.athena_client.get_table_count.return_value = 10
-        handler.athena_client.query_table.side_effect = Exception("Query execution failed")
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 10}
+        handler.dynamodb_client.query_brands_by_status.side_effect = Exception("Query execution failed")
         
         # Execute should raise the exception
         parameters = {"limit": 5}
@@ -422,52 +394,40 @@ class TestQueryBrandsToCheckHandler:
 
     def test_lambda_handler_success(self, handler):
         """Test lambda_handler with successful execution."""
-        # Mock Athena responses
-        handler.athena_client.get_table_count.return_value = 5
-        handler.athena_client.query_table.return_value = [
+        # Mock DynamoDB responses
+        handler.dynamodb_client.query_brands_by_status.return_value = [
             {
                 "brandid": 601,
                 "brandname": "Lambda Test Brand",
-                "status": "unprocessed",
+                "brand_status": "unprocessed",
                 "sector": "Retail"
             }
         ]
+        handler.dynamodb_client.get_status_counts.return_value = {"unprocessed": 5}
         
         # Create event
         event = {
-            "parameters": {
-                "status": "unprocessed",
-                "limit": 10
-            },
-            "request_id": "test-request-123"
+            "status": "unprocessed",
+            "limit": 10
         }
         
         # Call handler
         response = handler.handle(event, None)
         
         # Verify response structure
-        assert response["success"] is True
-        assert "data" in response
-        assert response["data"]["total_count"] == 5
-        assert len(response["data"]["brands"]) == 1
-        assert response["request_id"] == "test-request-123"
+        assert response["total_count"] == 5
+        assert len(response["brands"]) == 1
 
     def test_lambda_handler_validation_error(self, handler):
         """Test lambda_handler with validation error."""
         # Create event with invalid parameters
         event = {
-            "parameters": {
-                "limit": -5
-            },
-            "request_id": "test-request-456"
+            "limit": -5
         }
         
-        # Call handler
-        response = handler.handle(event, None)
+        # Call handler - should raise exception
+        with pytest.raises(UserInputError) as exc_info:
+            handler.handle(event, None)
         
-        # Verify error response
-        assert response["success"] is False
-        assert "error" in response
-        assert response["error"]["type"] == "user_input"
-        assert "positive" in response["error"]["message"].lower()
-        assert response["request_id"] == "test-request-456"
+        # Verify error details
+        assert "positive" in str(exc_info.value).lower()

@@ -22,18 +22,18 @@ class TestStartWorkflowLogging:
     """Test workflow execution logging in start_workflow handler."""
 
     @patch("lambda_functions.start_workflow.handler.DualStorageClient")
-    @patch("lambda_functions.start_workflow.handler.AthenaClient")
+    @patch("lambda_functions.start_workflow.handler.DynamoDBClient")
     @patch("lambda_functions.start_workflow.handler.boto3")
-    def test_logs_workflow_start_to_dual_storage(self, mock_boto3, mock_athena_client_class, mock_dual_storage_class):
+    def test_logs_workflow_start_to_dual_storage(self, mock_boto3, mock_dynamodb_client_class, mock_dual_storage_class):
         """Test that starting a workflow logs execution start to dual storage."""
         # Arrange
         mock_sfn_client = MagicMock()
         mock_boto3.client.return_value = mock_sfn_client
         
-        # Mock Athena client for brand verification
-        mock_athena_instance = MagicMock()
-        mock_athena_instance.query_table.return_value = [{"brandid": 123}]
-        mock_athena_client_class.return_value = mock_athena_instance
+        # Mock DynamoDB client for brand verification
+        mock_dynamodb_instance = MagicMock()
+        mock_dynamodb_instance.get_brand_by_id.return_value = {"brandid": 123}
+        mock_dynamodb_client_class.return_value = mock_dynamodb_instance
         
         # Mock dual storage client
         mock_dual_storage = MagicMock()
@@ -70,18 +70,18 @@ class TestStartWorkflowLogging:
         assert "input_data" in call_args
 
     @patch("lambda_functions.start_workflow.handler.DualStorageClient")
-    @patch("lambda_functions.start_workflow.handler.AthenaClient")
+    @patch("lambda_functions.start_workflow.handler.DynamoDBClient")
     @patch("lambda_functions.start_workflow.handler.boto3")
-    def test_workflow_start_succeeds_even_if_logging_fails(self, mock_boto3, mock_athena_client_class, mock_dual_storage_class):
+    def test_workflow_start_succeeds_even_if_logging_fails(self, mock_boto3, mock_dynamodb_client_class, mock_dual_storage_class):
         """Test that workflow start succeeds even if dual storage logging fails."""
         # Arrange
         mock_sfn_client = MagicMock()
         mock_boto3.client.return_value = mock_sfn_client
         
-        # Mock Athena client
-        mock_athena_instance = MagicMock()
-        mock_athena_instance.query_table.return_value = [{"brandid": 123}]
-        mock_athena_client_class.return_value = mock_athena_instance
+        # Mock DynamoDB client
+        mock_dynamodb_instance = MagicMock()
+        mock_dynamodb_instance.get_brand_by_id.return_value = {"brandid": 123}
+        mock_dynamodb_client_class.return_value = mock_dynamodb_instance
         
         # Mock dual storage to raise exception
         mock_dual_storage = MagicMock()
