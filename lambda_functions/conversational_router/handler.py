@@ -129,6 +129,72 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return create_error_response(error_msg)
 
 
+def parse_map_string(map_str: str) -> Dict[str, Any]:
+    """Parse a Java/Kotlin-style map string like {key=value, key2=value2}.
+    
+    Args:
+        map_str: Map string to parse
+        
+    Returns:
+        Parsed dictionary
+    """
+    # Remove curly braces
+    content = map_str.strip()[1:-1].strip()
+    
+    if not content:
+        return {}
+    
+    result = {}
+    # Split by comma, but be careful of commas inside values
+    parts = []
+    current = []
+    depth = 0
+    
+    for char in content:
+        if char in '{[':
+            depth += 1
+            current.append(char)
+        elif char in '}]':
+            depth -= 1
+            current.append(char)
+        elif char == ',' and depth == 0:
+            parts.append(''.join(current).strip())
+            current = []
+        else:
+            current.append(char)
+    
+    if current:
+        parts.append(''.join(current).strip())
+    
+    # Parse each key=value pair
+    for part in parts:
+        if '=' in part:
+            key, value = part.split('=', 1)
+            key = key.strip()
+            value = value.strip()
+            
+            # Try to parse value as JSON if it looks like JSON
+            if (value.startswith('[') and value.endswith(']')) or \
+               (value.startswith('{') and value.endswith('}')):
+                try:
+                    value = json.loads(value)
+                except json.JSONDecodeError:
+                    pass
+            # Try to convert to int
+            elif value.isdigit() or (value.startswith('-') and value[1:].isdigit()):
+                try:
+                    value = int(value)
+                except ValueError:
+                    pass
+            # Try to convert to boolean
+            elif value.lower() in ('true', 'false'):
+                value = value.lower() == 'true'
+            
+            result[key] = value
+    
+    return result
+
+
 def convert_parameter_value(value: Any, param_type: str) -> Any:
     """Convert parameter value to the correct type.
     
@@ -149,7 +215,14 @@ def convert_parameter_value(value: Any, param_type: str) -> Any:
                 print(f"Auto-parsed JSON string: {value} -> {parsed}")
                 return parsed
             except json.JSONDecodeError:
-                pass
+                # Try to parse as Java/Kotlin-style map: {key=value, key2=value2}
+                if value.startswith('{') and value.endswith('}') and '=' in value:
+                    try:
+                        parsed_dict = parse_map_string(value)
+                        print(f"Auto-parsed map string: {value} -> {parsed_dict}")
+                        return parsed_dict
+                    except Exception:
+                        pass
         
         # Try to convert numeric strings to integers if they look like integers
         if value.isdigit() or (value.startswith('-') and value[1:].isdigit()):

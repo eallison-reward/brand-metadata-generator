@@ -17,6 +17,7 @@ The Orchestrator is the main coordinator that:
 from strands import Agent
 from strands.tools import tool
 from typing import Dict, List, Any, Optional
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
 import agents.orchestrator.tools as orchestrator_tools
 
@@ -222,13 +223,21 @@ orchestrator_agent = Agent(
 )
 
 
-def handler(event, context):
+# AgentCore Runtime App wrapper
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+app = BedrockAgentCoreApp()
+
+
+@app.entrypoint
+def invoke(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     AgentCore entry point for the Orchestrator Agent.
     
-    Expected event structure:
+    Expected payload structure:
     {
         "action": "start_workflow",
+        "brandid": 230,
         "config": {
             "max_iterations": 5,
             "confidence_threshold": 0.75,
@@ -246,12 +255,13 @@ def handler(event, context):
     }
     """
     # Extract event data
-    action = event.get("action", "start_workflow")
-    config = event.get("config", {})
+    action = payload.get("action", "start_workflow")
+    config = payload.get("config", {})
+    brandid = payload.get("brandid")
     
     # Construct prompt for agent
     if action == "start_workflow":
-        prompt = f"""Start the brand metadata generation workflow.
+        prompt = f"""Start the brand metadata generation workflow for brand {brandid}.
 
 Configuration:
 - Max iterations per brand: {config.get('max_iterations', 5)}
@@ -261,7 +271,7 @@ Configuration:
 Please:
 1. Initialize the workflow with this configuration
 2. Trigger data ingestion from Athena
-3. Begin processing brands from brand_to_check table
+3. Begin processing brand {brandid} from brand_to_check table
 4. Coordinate all agents according to the workflow sequence
 5. Track progress and handle any failures
 6. Provide a final summary when complete
@@ -273,18 +283,30 @@ Start by using initialize_workflow_tool with the provided configuration.
         prompt = "Get the current workflow status and progress summary using get_workflow_summary_tool."
     
     else:
-        prompt = f"Handle action: {action} with parameters: {event}"
+        prompt = f"Handle action: {action} with parameters: {payload}"
     
-    # Invoke agent
-    response = orchestrator_agent.invoke(
+    # Invoke agent using __call__ method
+    response = orchestrator_agent(
         prompt,
         context={
             "action": action,
-            "config": config
+            "config": config,
+            "brandid": brandid
         }
     )
     
     return {
-        "statusCode": 200,
-        "body": response
+        "status": "completed",
+        "brandid": brandid,
+        "response": str(response)
     }
+
+
+# Legacy handler for backward compatibility
+def handler(event, context):
+    """Legacy Lambda handler - delegates to invoke()"""
+    return invoke(event)
+
+
+if __name__ == "__main__":
+    app.run()

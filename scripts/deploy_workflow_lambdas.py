@@ -46,7 +46,7 @@ LAMBDA_FUNCTIONS = [
 ENV_VARS = {
     "S3_BUCKET": "brand-generator-rwrd-023-eu-west-1",
     "ATHENA_DATABASE": "brand_metadata_generator_db",
-    "ORCHESTRATOR_AGENT_ID": "brand_metagen_orchestrator-VVTBH860nM",
+    "ORCHESTRATOR_AGENT_ARN": "arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_orchestrator-VVTBH860nM",
 }
 
 
@@ -182,6 +182,7 @@ def get_or_create_execution_role(iam_client, env):
                 "Effect": "Allow",
                 "Action": [
                     "bedrock:InvokeAgent",
+                    "bedrock-agentcore:InvokeAgentRuntime",
                 ],
                 "Resource": "*",
             },

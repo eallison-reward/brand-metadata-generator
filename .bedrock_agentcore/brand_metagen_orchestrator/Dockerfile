@@ -36,6 +36,5 @@ EXPOSE 8080
 # Copy entire project (respecting .dockerignore)
 COPY . .
 
-# Use the full module path
-
-CMD ["opentelemetry-instrument", "python", "-m", "agents.orchestrator.agentcore_handler"]
+# Use the full module path with opentelemetry instrumentation
+CMD ["opentelemetry-instrument", "python", "agents/orchestrator/agentcore_handler.py"]

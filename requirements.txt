@@ -4,6 +4,7 @@ botocore>=1.34.0
 
 # Strands API for AgentCore
 strands-agents
+bedrock-agentcore>=0.1.0
 
 # Data Processing
 pandas>=2.0.0
