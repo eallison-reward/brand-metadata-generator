@@ -1,0 +1,542 @@
+default_agent: brand_metagen_orchestrator
+agents:
+  brand_metagen_orchestrator:
+    name: brand_metagen_orchestrator
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/orchestrator/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-2e18ac2b1e
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_orchestrator
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_orchestrator-VVTBH860nM
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_orchestrator-VVTBH860nM
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_orchestrator-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-2e18ac2b1e
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_orchestrator_mem-LQjcHg2hLl
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_orchestrator_mem-LQjcHg2hLl
+      memory_name: brand_metagen_orchestrator_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false
+  brand_metagen_data_transformation:
+    name: brand_metagen_data_transformation
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/data_transformation/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-1e6cbd20ac
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_data_transformation
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_data_transformation-PRK9kaC1wc
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_data_transformation-PRK9kaC1wc
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_data_transformation-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-1e6cbd20ac
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_data_transformation_mem-g3GodA4GMi
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_data_transformation_mem-g3GodA4GMi
+      memory_name: brand_metagen_data_transformation_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false
+  brand_metagen_evaluator:
+    name: brand_metagen_evaluator
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/evaluator/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-2d9bc80181
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_evaluator
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_evaluator-bm0MMfFa5i
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_evaluator-bm0MMfFa5i
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_evaluator-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-2d9bc80181
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_evaluator_mem-1uMIwd2NSR
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_evaluator_mem-1uMIwd2NSR
+      memory_name: brand_metagen_evaluator_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false
+  brand_metagen_metadata_production:
+    name: brand_metagen_metadata_production
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/metadata_production/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-d928acba3b
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_metadata_production
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_metadata_production-JeeJ29B0fw
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_metadata_production-JeeJ29B0fw
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_metadata_production-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-d928acba3b
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_metadata_production_mem-wazOj15oSC
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_metadata_production_mem-wazOj15oSC
+      memory_name: brand_metagen_metadata_production_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false
+  brand_metagen_commercial_assessment:
+    name: brand_metagen_commercial_assessment
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/commercial_assessment/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-f6eaf0ca49
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_commercial_assessment
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_commercial_assessment-9JOqlP5zRg
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_commercial_assessment-9JOqlP5zRg
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_commercial_assessment-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-f6eaf0ca49
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_commercial_assessment_mem-ICYBn2CgV3
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_commercial_assessment_mem-ICYBn2CgV3
+      memory_name: brand_metagen_commercial_assessment_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false
+  brand_metagen_confirmation:
+    name: brand_metagen_confirmation
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/confirmation/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-e67c07c32c
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_confirmation
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_confirmation-oxwMepDf8L
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_confirmation-oxwMepDf8L
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_confirmation-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-e67c07c32c
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_confirmation_mem-lZrHuj8JTg
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_confirmation_mem-lZrHuj8JTg
+      memory_name: brand_metagen_confirmation_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false
+  brand_metagen_tiebreaker:
+    name: brand_metagen_tiebreaker
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/tiebreaker/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-d328f38b80
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_tiebreaker
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_tiebreaker-7BXIyrGJa7
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_tiebreaker-7BXIyrGJa7
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_tiebreaker-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-d328f38b80
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_tiebreaker_mem-3iYtvCBrqR
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_tiebreaker_mem-3iYtvCBrqR
+      memory_name: brand_metagen_tiebreaker_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false
+  brand_metagen_feedback_processing:
+    name: brand_metagen_feedback_processing
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/feedback_processing/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-995fc61608
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_feedback_processing
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_feedback_processing-QRwP7gHxlX
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_feedback_processing-QRwP7gHxlX
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_feedback_processing-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-995fc61608
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_feedback_processing_mem-5lIHKG3XOz
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_feedback_processing_mem-5lIHKG3XOz
+      memory_name: brand_metagen_feedback_processing_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false
+  brand_metagen_learning_analytics:
+    name: brand_metagen_learning_analytics
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator/agents/learning_analytics/agentcore_handler.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: docker
+    source_path: C:/Users/eda/OneDrive - SPORTS LOYALTY CARD LTD/Projects/Insight/brand_generator
+    aws:
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKRuntime-eu-west-1-3bdb31dd60
+      execution_role_auto_create: false
+      account: '536824473420'
+      region: eu-west-1
+      ecr_repository: 536824473420.dkr.ecr.eu-west-1.amazonaws.com/bedrock-agentcore-brand_metagen_learning_analytics
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: brand_metagen_learning_analytics-2jlL5G9y8K
+      agent_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:runtime/brand_metagen_learning_analytics-2jlL5G9y8K
+      agent_session_id: null
+    codebuild:
+      project_name: bedrock-agentcore-brand_metagen_learning_analytics-builder
+      execution_role: arn:aws:iam::536824473420:role/AmazonBedrockAgentCoreSDKCodeBuild-eu-west-1-3bdb31dd60
+      source_bucket: bedrock-agentcore-codebuild-sources-536824473420-eu-west-1
+    memory:
+      mode: STM_AND_LTM
+      memory_id: brand_metagen_learning_analytics_mem-0Y7uZg24ZE
+      memory_arn: arn:aws:bedrock-agentcore:eu-west-1:536824473420:memory/brand_metagen_learning_analytics_mem-0Y7uZg24ZE
+      memory_name: brand_metagen_learning_analytics_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false

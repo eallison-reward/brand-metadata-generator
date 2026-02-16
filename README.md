@@ -119,6 +119,13 @@ cd infrastructure/environments/dev
 terraform init
 terraform plan
 terraform apply
+
+# Deploy workflow agents to AgentCore
+cd ../../..
+python scripts/deploy_agentcore_agents.py --env dev
+
+# Deploy conversational interface agent to Bedrock Agents  
+python scripts/deploy_conversational_interface_agent.py --env dev --role-arn $(terraform -chdir=infrastructure/environments/dev output -raw agent_execution_role_arn)
 ```
 
 ### 4. Deploy Agents
@@ -166,7 +173,13 @@ All tests must pass before deployment to production.
 ```bash
 cd infrastructure/environments/dev
 terraform apply
-python ../../deploy_agents.py --env dev
+
+# Deploy workflow agents to AgentCore
+cd ../../..
+python scripts/deploy_agentcore_agents.py --env dev
+
+# Deploy conversational interface agent to Bedrock Agents
+python scripts/deploy_conversational_interface_agent.py --env dev --role-arn $(terraform -chdir=infrastructure/environments/dev output -raw agent_execution_role_arn)
 ```
 
 ### Production Environment
@@ -174,7 +187,13 @@ python ../../deploy_agents.py --env dev
 ```bash
 cd infrastructure/environments/prod
 terraform apply
-python ../../deploy_agents.py --env prod
+
+# Deploy workflow agents to AgentCore
+cd ../../..
+python scripts/deploy_agentcore_agents.py --env prod
+
+# Deploy conversational interface agent to Bedrock Agents
+python scripts/deploy_conversational_interface_agent.py --env prod --role-arn $(terraform -chdir=infrastructure/environments/prod output -raw agent_execution_role_arn)
 ```
 
 ## Usage

@@ -255,6 +255,11 @@ def deploy_router_lambda(
                 ZipFile=zip_content
             )
             
+            # Wait for code update to complete
+            print(f"   Waiting for code update to complete...")
+            waiter = lambda_client.get_waiter('function_updated')
+            waiter.wait(FunctionName=function_name)
+            
             # Update configuration
             lambda_client.update_function_configuration(
                 FunctionName=function_name,

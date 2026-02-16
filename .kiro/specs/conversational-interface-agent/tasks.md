@@ -50,7 +50,7 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Test error handling for invalid inputs
     - _Requirements: 7.1_
   
-  - [~] 3.3 Write property test for brand verification
+  - [ ] 3.3 Write property test for brand verification
     - **Property 5: Brand Verification Before Workflow Start**
     - **Validates: Requirements 2.1, 2.2, 2.3**
 
@@ -69,7 +69,7 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Test error handling
     - _Requirements: 7.2_
   
-  - [~] 4.3 Write property test for execution ARN return
+  - [ ] 4.3 Write property test for execution ARN return
     - **Property 7: Execution ARN Return**
     - **Validates: Requirements 2.6**
 
@@ -87,7 +87,7 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Test error handling for invalid ARN
     - _Requirements: 7.3_
   
-  - [~] 5.3 Write property test for workflow status accuracy
+  - [ ] 5.3 Write property test for workflow status accuracy
     - **Property 6: Workflow Status Accuracy**
     - **Validates: Requirements 2.4**
 
@@ -106,15 +106,15 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Test retry logic
     - _Requirements: 7.4_
   
-  - [~] 6.3 Write property test for feedback component extraction
+  - [ ] 6.3 Write property test for feedback component extraction
     - **Property 8: Feedback Component Extraction**
     - **Validates: Requirements 3.1, 3.3**
   
-  - [~] 6.4 Write property test for feedback submission confirmation
+  - [ ] 6.4 Write property test for feedback submission confirmation
     - **Property 9: Feedback Submission Confirmation**
     - **Validates: Requirements 3.2**
   
-  - [~] 6.5 Write property test for feedback submission retry
+  - [ ] 6.5 Write property test for feedback submission retry
     - **Property 11: Feedback Submission Retry**
     - **Validates: Requirements 3.5**
 
@@ -131,7 +131,7 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Test formatting of metadata fields
     - _Requirements: 7.6_
   
-  - [~] 7.3 Write property test for metadata retrieval
+  - [ ] 7.3 Write property test for metadata retrieval
     - **Property 12: Metadata Retrieval and Formatting**
     - **Validates: Requirements 4.1**
 
@@ -149,15 +149,15 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Test empty result handling
     - _Requirements: 7.5_
   
-  - [~] 8.3 Write property test for criteria-based querying
+  - [ ] 8.3 Write property test for criteria-based querying
     - **Property 13: Criteria-Based Querying**
     - **Validates: Requirements 4.2, 4.4**
   
-  - [~] 8.4 Write property test for result pagination
+  - [ ] 8.4 Write property test for result pagination
     - **Property 14: Result Pagination**
     - **Validates: Requirements 4.3**
   
-  - [~] 8.5 Write property test for empty result handling
+  - [ ] 8.5 Write property test for empty result handling
     - **Property 15: Empty Result Handling**
     - **Validates: Requirements 4.5**
 
@@ -174,7 +174,7 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Test pagination
     - _Requirements: 7.7_
   
-  - [~] 9.3 Write property test for escalation status reporting
+  - [ ] 9.3 Write property test for escalation status reporting
     - **Property 18: Escalation Status Reporting**
     - **Validates: Requirements 5.3**
 
@@ -191,11 +191,11 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Test with various execution states
     - _Requirements: 7.8_
   
-  - [~] 10.3 Write property test for health status reporting
+  - [ ] 10.3 Write property test for health status reporting
     - **Property 16: Health Status Reporting**
     - **Validates: Requirements 5.1**
   
-  - [~] 10.4 Write property test for statistics aggregation
+  - [ ] 10.4 Write property test for statistics aggregation
     - **Property 17: Statistics Aggregation**
     - **Validates: Requirements 5.2, 5.4**
 
@@ -248,7 +248,7 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - Set up IAM role with minimum permissions
     - _Requirements: 8.1, 8.3, 10.1, 10.2, 10.3, 10.4_
   
-  - [~] 13.4 Write integration tests for agent conversations
+  - [ ] 13.4 Write integration tests for agent conversations
     - Test workflow management conversations
     - Test feedback submission conversations
     - Test data querying conversations
@@ -284,77 +284,77 @@ This implementation plan breaks down the Conversational Interface Agent feature 
     - **Validates: Requirements 1.3, 2.5, 9.1, 9.2, 9.3, 9.4**
 
 - [ ] 15. Implement agent intelligence properties
-  - [~] 15.1 Write property test for intent parsing accuracy
+  - [ ] 15.1 Write property test for intent parsing accuracy
     - **Property 1: Intent Parsing Accuracy**
     - **Validates: Requirements 1.1, 1.4**
   
-  - [~] 15.2 Write property test for ambiguity detection
+  - [ ] 15.2 Write property test for ambiguity detection
     - **Property 2: Ambiguity Detection**
     - **Validates: Requirements 1.2**
   
-  - [~] 15.3 Write property test for multi-step coordination
+  - [ ] 15.3 Write property test for multi-step coordination
     - **Property 4: Multi-Step Coordination**
     - **Validates: Requirements 1.5**
   
-  - [~] 15.4 Write property test for feedback type support
+  - [ ] 15.4 Write property test for feedback type support
     - **Property 10: Feedback Type Support**
     - **Validates: Requirements 3.4**
   
-  - [~] 15.5 Write property test for proactive issue reporting
+  - [ ] 15.5 Write property test for proactive issue reporting
     - **Property 19: Proactive Issue Reporting**
     - **Validates: Requirements 5.5**
   
-  - [~] 15.6 Write property test for permission limitation reporting
+  - [ ] 15.6 Write property test for permission limitation reporting
     - **Property 24: Permission Limitation Reporting**
     - **Validates: Requirements 10.5**
 
 - [ ] 16. Create deployment automation
-  - [~] 16.1 Create Terraform module for Lambda functions
+  - [ ] 16.1 Create Terraform module for Lambda functions
     - Define Lambda function resources
     - Configure IAM roles and policies
     - Set up CloudWatch log groups
     - _Requirements: 8.4, 10.1, 10.2, 10.3, 10.4_
   
-  - [~] 16.2 Create Terraform module for Glue tables
+  - [ ] 16.2 Create Terraform module for Glue tables
     - Define Glue database and table resources
     - Configure S3 locations
     - _Requirements: 8.4, 6.1, 6.2, 6.3, 6.4_
   
-  - [~] 16.3 Create deployment script for agent
+  - [ ] 16.3 Create deployment script for agent
     - Write script to deploy agent using Strands API
     - Configure agent with tools and IAM role
     - _Requirements: 8.4, 8.1, 8.3_
   
-  - [~] 16.4 Create end-to-end deployment script
+  - [ ] 16.4 Create end-to-end deployment script
     - Write master script that deploys all components in order
     - Add validation checks after each step
     - _Requirements: 8.4_
   
-  - [~] 16.5 Test deployment script execution
+  - [ ] 16.5 Test deployment script execution
     - Run deployment script in test environment
     - Verify all resources are created correctly
     - _Requirements: 8.4_
 
 - [ ] 17. Create documentation
-  - [~] 17.1 Write user guide for chat interface
+  - [ ] 17.1 Write user guide for chat interface
     - Document how to access Bedrock Console
     - Provide example conversations for each use case
     - Include troubleshooting tips
     - _Requirements: 8.5_
   
-  - [~] 17.2 Write developer guide for tool functions
+  - [ ] 17.2 Write developer guide for tool functions
     - Document tool Lambda function architecture
     - Explain error handling patterns
     - Provide examples for adding new tools
     - _Requirements: 8.4_
   
-  - [~] 17.3 Write operations runbook
+  - [ ] 17.3 Write operations runbook
     - Document monitoring and alerting
     - Provide troubleshooting procedures
     - Include common issues and solutions
     - _Requirements: 9.5_
 
-- [~] 18. Final checkpoint - End-to-end testing
+- [ ] 18. Final checkpoint - End-to-end testing
   - Run all integration tests
   - Test agent in Bedrock Console with real conversations
   - Verify all tools work correctly

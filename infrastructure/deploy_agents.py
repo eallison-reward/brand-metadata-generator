@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Deploy all agents to AWS Bedrock AgentCore.
+"""DEPRECATED: Deploy all agents to AWS Bedrock AgentCore.
+
+⚠️  WARNING: This script is INCORRECT and should not be used!
+
+This script incorrectly deploys Strands-based agents as Bedrock Agents instead 
+of to the AgentCore runtime. 
+
+USE INSTEAD:
+- For workflow agents: scripts/deploy_agentcore_agents.py
+- For conversational agent: scripts/deploy_conversational_interface_agent.py
 
 This script deploys Strands-based agents to AWS Bedrock AgentCore runtime.
 Each agent is deployed with its handler, tools, and configuration.
