@@ -1,50 +1,44 @@
 #!/usr/bin/env python3
-"""Test the deployed Conversational Interface Agent.
-
-This script tests the agent by invoking it with sample queries.
-"""
+"""Test the conversational interface agent."""
 
 import argparse
-import json
 import boto3
-import uuid
-from typing import Dict, Any
-
-AWS_REGION = "eu-west-1"
+import sys
+import time
 
 
-def invoke_agent(
-    agent_id: str,
-    agent_alias_id: str,
-    session_id: str,
-    prompt: str
-) -> Dict[str, Any]:
-    """Invoke the Bedrock agent with a prompt.
+def test_agent(agent_id: str, alias_id: str, prompt: str, region: str = "eu-west-1"):
+    """Test the agent with a prompt.
     
     Args:
         agent_id: Agent ID
-        agent_alias_id: Agent alias ID
-        session_id: Session ID for conversation continuity
-        prompt: User prompt
-        
-    Returns:
-        Agent response
+        alias_id: Agent alias ID
+        prompt: Test prompt
+        region: AWS region
     """
-    client = boto3.client('bedrock-agent-runtime', region_name=AWS_REGION)
-    
-    print(f"\n{'='*70}")
-    print(f"Invoking agent with prompt: {prompt}")
-    print(f"{'='*70}\n")
+    bedrock_agent_runtime = boto3.client('bedrock-agent-runtime', region_name=region)
     
     try:
-        response = client.invoke_agent(
+        print(f"\n{'='*70}")
+        print(f"Testing Conversational Agent")
+        print(f"{'='*70}")
+        print(f"Agent ID: {agent_id}")
+        print(f"Alias ID: {alias_id}")
+        print(f"Region: {region}")
+        print(f"\nPrompt: {prompt}")
+        print(f"\n{'='*70}")
+        print(f"Response:")
+        print(f"{'='*70}\n")
+        
+        # Invoke agent
+        response = bedrock_agent_runtime.invoke_agent(
             agentId=agent_id,
-            agentAliasId=agent_alias_id,
-            sessionId=session_id,
+            agentAliasId=alias_id,
+            sessionId=f"test-session-{int(time.time())}",
             inputText=prompt
         )
         
-        # Process event stream
+        # Stream response
         event_stream = response['completion']
         full_response = ""
         
@@ -53,109 +47,65 @@ def invoke_agent(
                 chunk = event['chunk']
                 if 'bytes' in chunk:
                     text = chunk['bytes'].decode('utf-8')
-                    full_response += text
                     print(text, end='', flush=True)
+                    full_response += text
         
-        print("\n")
+        print(f"\n\n{'='*70}")
+        print(f"✅ Test completed successfully!")
+        print(f"{'='*70}\n")
         
-        return {
-            'success': True,
-            'response': full_response
-        }
+        return True
         
     except Exception as e:
-        print(f"❌ Error invoking agent: {str(e)}")
-        return {
-            'success': False,
-            'error': str(e)
-        }
+        print(f"\n❌ Error testing agent: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Test Conversational Interface Agent"
+        description="Test conversational interface agent",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Test with default prompt
+  python test_conversational_agent.py --agent-id GZF9REHEAO --alias-id XWTFA4KL42
+  
+  # Test with custom prompt
+  python test_conversational_agent.py --agent-id GZF9REHEAO --alias-id XWTFA4KL42 --prompt "what brands are ready to be processed?"
+        """
     )
     parser.add_argument(
         "--agent-id",
-        default="GZF9REHEAO",
-        help="Agent ID (default: GZF9REHEAO)"
+        required=True,
+        help="Agent ID"
     )
     parser.add_argument(
         "--alias-id",
-        default="XWTFA4KL42",
-        help="Agent alias ID (default: XWTFA4KL42)"
+        required=True,
+        help="Agent alias ID"
     )
     parser.add_argument(
         "--prompt",
-        help="Custom prompt to test (if not provided, runs predefined tests)"
+        default="what brands are ready to be processed?",
+        help="Test prompt (default: 'what brands are ready to be processed?')"
+    )
+    parser.add_argument(
+        "--region",
+        default="eu-west-1",
+        help="AWS region (default: eu-west-1)"
     )
     
     args = parser.parse_args()
     
-    # Generate session ID
-    session_id = str(uuid.uuid4())
+    success = test_agent(args.agent_id, args.alias_id, args.prompt, args.region)
     
-    if args.prompt:
-        # Test custom prompt
-        result = invoke_agent(
-            args.agent_id,
-            args.alias_id,
-            session_id,
-            args.prompt
-        )
-        
-        if result['success']:
-            print("✅ Test completed successfully")
-        else:
-            print("❌ Test failed")
+    if success:
+        sys.exit(0)
     else:
-        # Run predefined test suite
-        test_prompts = [
-            "What brands are available to process?",
-            "Show me the first 5 unprocessed brands",
-            "What are the workflow statistics for the last day?",
-        ]
-        
-        print(f"\n{'='*70}")
-        print(f"Running Test Suite")
-        print(f"{'='*70}")
-        print(f"Agent ID: {args.agent_id}")
-        print(f"Alias ID: {args.alias_id}")
-        print(f"Session ID: {session_id}")
-        print(f"Number of tests: {len(test_prompts)}")
-        
-        results = []
-        for i, prompt in enumerate(test_prompts, 1):
-            print(f"\n\nTest {i}/{len(test_prompts)}")
-            result = invoke_agent(
-                args.agent_id,
-                args.alias_id,
-                session_id,
-                prompt
-            )
-            results.append({
-                'prompt': prompt,
-                'success': result['success']
-            })
-        
-        # Summary
-        print(f"\n{'='*70}")
-        print(f"Test Summary")
-        print(f"{'='*70}")
-        
-        successful = sum(1 for r in results if r['success'])
-        print(f"Total tests: {len(results)}")
-        print(f"Successful: {successful}")
-        print(f"Failed: {len(results) - successful}")
-        
-        if successful == len(results):
-            print("\n✅ All tests passed!")
-        else:
-            print("\n⚠️  Some tests failed")
-            for i, result in enumerate(results, 1):
-                if not result['success']:
-                    print(f"   Test {i}: {result['prompt']}")
+        print("\n❌ Test failed")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

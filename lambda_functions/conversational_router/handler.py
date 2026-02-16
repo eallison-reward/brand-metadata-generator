@@ -139,6 +139,27 @@ def convert_parameter_value(value: Any, param_type: str) -> Any:
     Returns:
         Converted value
     """
+    # Auto-detect arrays/objects in string format even if type is not specified
+    if isinstance(value, str):
+        # Try to parse as JSON if it looks like JSON
+        if (value.startswith('[') and value.endswith(']')) or \
+           (value.startswith('{') and value.endswith('}')):
+            try:
+                parsed = json.loads(value)
+                print(f"Auto-parsed JSON string: {value} -> {parsed}")
+                return parsed
+            except json.JSONDecodeError:
+                pass
+        
+        # Try to convert numeric strings to integers if they look like integers
+        if value.isdigit() or (value.startswith('-') and value[1:].isdigit()):
+            try:
+                int_value = int(value)
+                print(f"Auto-converted numeric string: {value} -> {int_value}")
+                return int_value
+            except ValueError:
+                pass
+    
     if param_type == 'integer':
         try:
             return int(value)
@@ -164,7 +185,7 @@ def convert_parameter_value(value: Any, param_type: str) -> Any:
                 return [item.strip() for item in value.split(',')]
         return value
     else:
-        # Default to string
+        # Default to string (but already handled JSON parsing above)
         return str(value) if value is not None else value
 
 

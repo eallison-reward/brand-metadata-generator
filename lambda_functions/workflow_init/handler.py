@@ -52,7 +52,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Prepare workflow state
         workflow_state = {
-            "workflow_id": context.request_id,
+            "workflow_id": context.aws_request_id,
             "start_time": context.get_remaining_time_in_millis(),
             "status": "initialized",
             "brands_processed": 0,

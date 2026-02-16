@@ -25,8 +25,11 @@ AWS_REGION = "eu-west-1"
 AGENT_NAME_PREFIX = "brand_metagen_conversational_interface"
 
 # Agent configuration
+# NOTE: Must use inference profile ID, not direct model ID
+# Direct model IDs like "anthropic.claude-3-7-sonnet-20250219-v1:0" are not supported
+# Use region-specific inference profile: "eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
 AGENT_CONFIG = {
-    "model": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+    "model": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
     "timeout": 300,
     "description": "Natural language interface for Brand Metadata Generator system",
     "temperature": 0.7,
